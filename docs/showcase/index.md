@@ -22,6 +22,7 @@ Applications built by the community using Amplifier.
 | **[app-blog-creator](https://github.com/robotdad/amplifier-app-blog-creator)** | AI-powered blog creation with style-aware generation and rich markdown editor | @robotdad | Active |
 | **[app-voice](https://github.com/robotdad/amplifier-app-voice)** | Desktop voice assistant with native speech-to-speech via OpenAI Realtime API | @robotdad | Experimental |
 | **[app-tool-generator](https://github.com/samueljklee/amplifier-app-tool-generator)** | AI-powered tool generator for creating custom Amplifier tools | @samueljklee | Active |
+| **[amplifier-playground](https://github.com/samueljklee/amplifier-playground)** | Interactive environment for building, configuring, and testing Amplifier AI agent sessions with web UI and CLI | @samueljklee | Active |
 | **[app-benchmarks](https://github.com/DavidKoleczek/amplifier-app-benchmarks)** | Benchmarking and evaluation suite for Amplifier | @DavidKoleczek | Active |
 
 ---
