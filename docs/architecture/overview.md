@@ -218,6 +218,28 @@ Supporting libraries provide higher-level functionality:
 
 These libraries are **not part of the kernel**—they're application-layer concerns.
 
+## For Different Audiences
+
+Now that you understand the architecture, here's where to go based on what you want to do:
+
+### I Want to Use Amplifier
+→ Start with [Getting Started](../getting_started/)  
+→ Read [CLI User Guide](../user_guide/) for the amplifier-app-cli application
+
+### I Want to Extend Amplifier with Modules
+→ Read this Architecture section to understand the system  
+→ Follow [Module Developer Guide](../developer/) for creating custom providers, tools, hooks
+
+### I Want to Build Applications on Amplifier
+→ Read this Architecture section to understand the foundation  
+→ Follow [Application Developer Guide](../developer_guides/applications/) for building apps on amplifier-core  
+→ Study [Foundation Guide](../developer_guides/foundation/) for using the core and libraries
+
+### I Want to Contribute to Amplifier Core
+→ Read this Architecture section + [Kernel Philosophy](kernel.md)  
+→ Follow [Foundation Developer Guide](../developer_guides/foundation/) for working with the kernel and libraries  
+→ See [Contributing](../community/contributing.md) for contribution guidelines
+
 ## Next Steps
 
 - [Kernel Philosophy](kernel.md) - Deep dive into kernel design

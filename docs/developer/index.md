@@ -1,11 +1,18 @@
 ---
-title: Developer Guide
-description: Building modules and contributing to Amplifier
+title: Module Developer Guide
+description: Creating custom modules to extend Amplifier
 ---
 
-# Developer Guide
+# Module Developer Guide
 
-This guide covers developing custom modules for Amplifier.
+This guide covers creating **custom modules** that extend Amplifier's capabilities: providers, tools, hooks, orchestrators, and context managers.
+
+!!! info "Looking for something else?"
+    - **Building applications on amplifier-core?** → See [Application Developer Guide](../developer_guides/applications/)
+    - **Contributing to the foundation?** → See [Foundation Developer Guide](../developer_guides/foundation/)
+    - **Using the CLI?** → See [User Guide](../user_guide/)
+
+This guide is for **extending Amplifier with new capabilities**, not building applications or contributing to the core.
 
 ## Topics
 

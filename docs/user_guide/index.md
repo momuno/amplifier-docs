@@ -1,11 +1,18 @@
 ---
-title: User Guide
-description: Complete guide to using Amplifier
+title: User Guide - Amplifier CLI
+description: Complete guide to using the Amplifier CLI application
 ---
 
-# User Guide
+# User Guide: Amplifier CLI
 
-This guide covers everything you need to know to use Amplifier effectively.
+This guide covers everything you need to know to use **amplifier-app-cli**, the command-line application for Amplifier.
+
+!!! info "About This Guide"
+    This guide is for **using the Amplifier CLI** (`amplifier` command). If you're:
+    
+    - **Building applications on amplifier-core** → See [Application Developer Guide](../developer_guides/applications/)
+    - **Creating custom modules** → See [Module Developer Guide](../developer/)
+    - **Contributing to the foundation** → See [Foundation Developer Guide](../developer_guides/foundation/)
 
 ## Topics
 

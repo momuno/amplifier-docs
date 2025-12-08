@@ -11,16 +11,22 @@ nav:
       - Agents: user_guide/agents.md
       - Sessions: user_guide/sessions.md
       - Collections: user_guide/collections.md
-  - Developer Guide:
-      - developer/index.md
-      - Module Development: developer/module_development.md
-      - Contracts:
-          - developer/contracts/index.md
-          - Provider Contract: developer/contracts/provider.md
-          - Tool Contract: developer/contracts/tool.md
-          - Hook Contract: developer/contracts/hook.md
-          - Orchestrator Contract: developer/contracts/orchestrator.md
-          - Context Contract: developer/contracts/context.md
+  - Developer Guides:
+      - Foundation:
+          - developer_guides/foundation/index.md
+      - Applications:
+          - developer_guides/applications/index.md
+          - CLI Case Study: developer_guides/applications/cli_case_study.md
+      - Modules:
+          - developer/index.md
+          - Module Development: developer/module_development.md
+          - Contracts:
+              - developer/contracts/index.md
+              - Provider Contract: developer/contracts/provider.md
+              - Tool Contract: developer/contracts/tool.md
+              - Hook Contract: developer/contracts/hook.md
+              - Orchestrator Contract: developer/contracts/orchestrator.md
+              - Context Contract: developer/contracts/context.md
   - Architecture:
       - architecture/index.md
       - Overview: architecture/overview.md
