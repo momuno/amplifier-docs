@@ -46,6 +46,7 @@ docs/modules/providers/openai.md,amplifier-module-provider-openai/amplifier_modu
 docs/modules/providers/azure.md,amplifier-module-provider-azure-openai/amplifier_module_provider_azure_openai/__init__.py|amplifier-module-provider-azure-openai/README.md,DERIVED,Azure OpenAI provider documentation
 docs/modules/providers/ollama.md,amplifier-module-provider-ollama/amplifier_module_provider_ollama/__init__.py|amplifier-module-provider-ollama/README.md,DERIVED,Ollama provider documentation
 docs/modules/providers/vllm.md,amplifier-module-provider-vllm/amplifier_module_provider_vllm/__init__.py|amplifier-module-provider-vllm/README.md,DERIVED,vLLM provider documentation
+docs/modules/providers/mock.md,amplifier-module-provider-mock/amplifier_module_provider_mock/__init__.py|amplifier-module-provider-mock/README.md,DERIVED,Mock provider documentation (for testing)
 docs/modules/tools/index.md,amplifier-module-tool-*/README.md,DERIVED,Tools catalog
 docs/modules/tools/filesystem.md,amplifier-module-tool-filesystem/amplifier_module_tool_filesystem/*.py|amplifier-module-tool-filesystem/README.md,DERIVED,Filesystem tool documentation
 docs/modules/tools/bash.md,amplifier-module-tool-bash/amplifier_module_tool_bash/__init__.py|amplifier-module-tool-bash/README.md,DERIVED,Bash tool documentation
@@ -64,6 +65,12 @@ docs/modules/hooks/index.md,amplifier-module-hooks-*/README.md,DERIVED,Hooks cat
 docs/modules/hooks/logging.md,amplifier-module-hooks-logging/amplifier_module_hooks_logging/__init__.py|amplifier-module-hooks-logging/README.md,DERIVED,Logging hook documentation
 docs/modules/hooks/approval.md,amplifier-module-hooks-approval/amplifier_module_hooks_approval/__init__.py|amplifier-module-hooks-approval/README.md,DERIVED,Approval hook documentation
 docs/modules/hooks/redaction.md,amplifier-module-hooks-redaction/amplifier_module_hooks_redaction/__init__.py|amplifier-module-hooks-redaction/README.md,DERIVED,Redaction hook documentation
+docs/modules/hooks/backup.md,amplifier-module-hooks-backup/amplifier_module_hooks_backup/__init__.py|amplifier-module-hooks-backup/README.md,DERIVED,Backup hook documentation
+docs/modules/hooks/scheduler_cost_aware.md,amplifier-module-hooks-scheduler-cost-aware/amplifier_module_hooks_scheduler_cost_aware/__init__.py|amplifier-module-hooks-scheduler-cost-aware/README.md,DERIVED,Cost-aware scheduler hook documentation
+docs/modules/hooks/scheduler_heuristic.md,amplifier-module-hooks-scheduler-heuristic/amplifier_module_hooks_scheduler_heuristic/__init__.py|amplifier-module-hooks-scheduler-heuristic/README.md,DERIVED,Heuristic scheduler hook documentation
+docs/modules/hooks/status_context.md,amplifier-module-hooks-status-context/amplifier_module_hooks_status_context/__init__.py|amplifier-module-hooks-status-context/README.md,DERIVED,Status context hook documentation
+docs/modules/hooks/streaming_ui.md,amplifier-module-hooks-streaming-ui/amplifier_module_hooks_streaming_ui/__init__.py|amplifier-module-hooks-streaming-ui/README.md,DERIVED,Streaming UI hook documentation
+docs/modules/hooks/todo_reminder.md,amplifier-module-hooks-todo-reminder/amplifier_module_hooks_todo_reminder/__init__.py|amplifier-module-hooks-todo-reminder/README.md,DERIVED,Todo reminder hook documentation
 docs/ecosystem/index.md,amplifier/docs/MODULES.md|amplifier-core/docs/contracts/README.md|amplifier-profiles/README.md,DERIVED,Ecosystem overview - MODULES.md is primary catalog
 docs/showcase/index.md,N/A,DERIVED,Showcase page - manually curated
 docs/community/index.md,N/A,DERIVED,Community page - manually maintained

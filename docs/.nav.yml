@@ -45,6 +45,7 @@ nav:
               - Azure OpenAI: modules/providers/azure.md
               - Ollama: modules/providers/ollama.md
               - vLLM: modules/providers/vllm.md
+              - Mock: modules/providers/mock.md
           - Tools:
               - modules/tools/index.md
               - Filesystem: modules/tools/filesystem.md
@@ -67,6 +68,12 @@ nav:
               - Logging: modules/hooks/logging.md
               - Approval: modules/hooks/approval.md
               - Redaction: modules/hooks/redaction.md
+              - Backup: modules/hooks/backup.md
+              - Cost-Aware Scheduler: modules/hooks/scheduler_cost_aware.md
+              - Heuristic Scheduler: modules/hooks/scheduler_heuristic.md
+              - Status Context: modules/hooks/status_context.md
+              - Streaming UI: modules/hooks/streaming_ui.md
+              - Todo Reminder: modules/hooks/todo_reminder.md
       - Libraries:
           - libraries/index.md
           - Profiles: libraries/profiles.md
