@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """
-Automate documentation regeneration for all module documentation files.
+Automate documentation regeneration for all documentation files.
 
 This script:
-1. Finds all module MD files in docs/modules/
+1. Finds all MD files in docs/modules/
 2. For each file:
    - Extracts intent using doc-evergreen extract-intent
    - Looks up source repo in DOC_SOURCE_MAPPING.csv
@@ -69,7 +69,7 @@ def find_module_docs(base_dir: Path) -> List[Path]:
     """
     docs_dir = base_dir / "docs" / "modules"
     if not docs_dir.exists():
-        log_error(f"Module docs directory not found: {docs_dir}")
+        log_error(f"Documentation directory not found: {docs_dir}")
         return []
     
     # Find all .md files recursively, excluding index.md
@@ -237,6 +237,31 @@ def clone_repo(repo_name: str, temp_dir: Path) -> Optional[Path]:
         return None
 
 
+def create_docignore(repo_path: Path) -> bool:
+    """
+    Create a .docignore file in the repository to exclude markdown files.
+    
+    This ensures doc-evergreen only uses source truth files (code, config, etc.)
+    and ignores existing documentation that may be outdated.
+    
+    Returns True on success.
+    """
+    docignore_path = repo_path / ".docignore"
+    
+    try:
+        with open(docignore_path, 'w') as f:
+            f.write("# Ignore all markdown documentation files\n")
+            f.write("# We only want to generate docs from source truth (code, config, etc.)\n")
+            f.write("*.md\n")
+        
+        log_success(f"Created .docignore to exclude *.md files")
+        return True
+        
+    except Exception as e:
+        log_warning(f"Failed to create .docignore: {e}")
+        return False
+
+
 def generate_docs(repo_path: Path, output_name: str, intent: str) -> Optional[Path]:
     """
     Generate documentation from repository using doc-evergreen.
@@ -251,6 +276,9 @@ def generate_docs(repo_path: Path, output_name: str, intent: str) -> Optional[Pa
     try:
         # Change to repo root
         os.chdir(repo_path)
+        
+        # Create .docignore to exclude markdown files from source analysis
+        create_docignore(repo_path)
         
         # Run doc-evergreen generate
         result = subprocess.run(
@@ -414,11 +442,11 @@ def process_module_doc(
 def main():
     """Main entry point."""
     parser = argparse.ArgumentParser(
-        description="Regenerate module documentation using doc-evergreen",
+        description="Regenerate documentation using doc-evergreen",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  # Process all module docs
+  # Process all docs
   python scripts/regenerate_module_docs.py
 
   # Dry run to see what would be processed
@@ -483,7 +511,7 @@ Examples:
         log_error("Must run from amplifier-docs repository root")
         sys.exit(1)
     
-    log_section("Module Documentation Regeneration")
+    log_section("Documentation Regeneration")
     
     # Load source mapping
     log_info("Loading DOC_SOURCE_MAPPING.csv...")
@@ -577,10 +605,10 @@ Examples:
         module_docs = find_module_docs(base_dir)
     
     if not module_docs:
-        log_warning("No module documentation files found")
+        log_warning("No documentation files found")
         sys.exit(0)
     
-    log_success(f"Found {len(module_docs)} module documentation files")
+    log_success(f"Found {len(module_docs)} documentation files")
     
     # Create cache directory
     cache_dir = args.cache_dir
