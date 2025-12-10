@@ -272,10 +272,18 @@ def generate_from_outline(repo_path: Path, outline_path: Path, output_name: str)
         # Create .docignore to exclude markdown files from source analysis
         create_docignore(repo_path)
         
-        # Run doc-evergreen generate-from-outline
-        # The outline contains the output filename in its metadata, so we only pass the outline path
+        # Copy outline file into repo directory so doc-evergreen can find it
+        # doc-evergreen looks for outlines in .doc-evergreen/outlines/ by default
+        outlines_dir = repo_path / ".doc-evergreen" / "outlines"
+        outlines_dir.mkdir(parents=True, exist_ok=True)
+        
+        local_outline_path = outlines_dir / outline_path.name
+        shutil.copy2(outline_path, local_outline_path)
+        log_info(f"Copied outline to {local_outline_path.relative_to(repo_path)}")
+        
+        # Run doc-evergreen generate-from-outline with the local path
         result = subprocess.run(
-            ["doc-evergreen", "generate-from-outline", str(outline_path)],
+            ["doc-evergreen", "generate-from-outline", str(local_outline_path)],
             capture_output=True,
             text=True,
             check=True
