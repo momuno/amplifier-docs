@@ -272,12 +272,16 @@ def generate_from_outline(repo_path: Path, outline_path: Path, output_name: str)
         # Create .docignore to exclude markdown files from source analysis
         create_docignore(repo_path)
         
-        # Copy outline file into repo directory so doc-evergreen can find it
-        # doc-evergreen looks for outlines in .doc-evergreen/outlines/ by default
-        outlines_dir = repo_path / ".doc-evergreen" / "outlines"
-        outlines_dir.mkdir(parents=True, exist_ok=True)
+        # Copy outline file into repo directory preserving the full cache structure
+        # doc-evergreen expects outlines in the same structure: .doc-evergreen/amplifier-docs-cache/...
+        # We need to recreate the parent directory structure
+        outline_parent_dir = outline_path.parent  # e.g., .../docs-api-cli-index/
+        cache_subpath = outline_parent_dir.name  # e.g., docs-api-cli-index
         
-        local_outline_path = outlines_dir / outline_path.name
+        local_cache_dir = repo_path / ".doc-evergreen" / "amplifier-docs-cache" / cache_subpath
+        local_cache_dir.mkdir(parents=True, exist_ok=True)
+        
+        local_outline_path = local_cache_dir / outline_path.name
         shutil.copy2(outline_path, local_outline_path)
         log_info(f"Copied outline to {local_outline_path.relative_to(repo_path)}")
         
