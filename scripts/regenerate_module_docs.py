@@ -22,6 +22,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
@@ -593,6 +594,16 @@ Examples:
         help='Continue from last successful completion (uses checkpoint file)'
     )
     
+    parser.add_argument(
+        '--parallel',
+        type=int,
+        nargs='?',
+        const=-1,
+        default=0,
+        metavar='WORKERS',
+        help='Enable parallel processing. Optionally specify number of workers (default: auto-detect based on file count and CPU cores)'
+    )
+    
     args = parser.parse_args()
     
     # Determine base directory (should be repo root)
@@ -751,31 +762,87 @@ Examples:
         cleanup_temp = True
     
     try:
+        # Determine parallel processing strategy
+        num_files = len(module_docs)
         
-        # Process each module doc
+        # Parallel processing is incompatible with checkpointing (--continue)
+        # because files must be processed in order for sequential checkpointing
+        if args.continue_from_checkpoint and args.parallel:
+            log_warning("Parallel processing disabled: --continue requires sequential processing")
+            args.parallel = 0
+        
+        # Smart defaults for parallel processing
+        if args.parallel == -1:  # Auto-detect
+            # Use parallelism if we have 3+ files
+            if num_files >= 3:
+                import multiprocessing
+                max_workers = min(num_files, multiprocessing.cpu_count())
+                log_info(f"Auto-detected {max_workers} workers for {num_files} files")
+            else:
+                max_workers = 1  # Sequential for 1-2 files
+        elif args.parallel > 0:
+            max_workers = args.parallel
+            log_info(f"Using {max_workers} workers (explicitly set)")
+        else:
+            max_workers = 1  # Sequential processing
+        
+        # Process files
         success_count = 0
         failure_count = 0
         
-        for doc_path in module_docs:
-            try:
-                success = process_module_doc(
-                    doc_path,
-                    source_mapping,
-                    cache_dir,
-                    temp_dir,
-                    base_dir,
-                    args.dry_run
-                )
-                if success:
-                    success_count += 1
-                    # Save checkpoint after each successful completion (unless dry run)
-                    if not args.dry_run:
-                        save_checkpoint(base_dir, doc_path)
-                else:
+        if max_workers == 1:
+            # Sequential processing (supports checkpointing)
+            for doc_path in module_docs:
+                try:
+                    success = process_module_doc(
+                        doc_path,
+                        source_mapping,
+                        cache_dir,
+                        temp_dir,
+                        base_dir,
+                        args.dry_run
+                    )
+                    if success:
+                        success_count += 1
+                        # Save checkpoint after each successful completion (unless dry run)
+                        if not args.dry_run:
+                            save_checkpoint(base_dir, doc_path)
+                    else:
+                        failure_count += 1
+                except Exception as e:
+                    log_error(f"Unexpected error processing {doc_path.name}: {e}")
                     failure_count += 1
-            except Exception as e:
-                log_error(f"Unexpected error processing {doc_path.name}: {e}")
-                failure_count += 1
+        else:
+            # Parallel processing (no checkpointing)
+            log_info(f"Processing {num_files} files in parallel with {max_workers} workers...")
+            
+            with ThreadPoolExecutor(max_workers=max_workers) as executor:
+                # Submit all tasks
+                future_to_path = {
+                    executor.submit(
+                        process_module_doc,
+                        doc_path,
+                        source_mapping,
+                        cache_dir,
+                        temp_dir,
+                        base_dir,
+                        args.dry_run
+                    ): doc_path
+                    for doc_path in module_docs
+                }
+                
+                # Process completed tasks
+                for future in as_completed(future_to_path):
+                    doc_path = future_to_path[future]
+                    try:
+                        success = future.result()
+                        if success:
+                            success_count += 1
+                        else:
+                            failure_count += 1
+                    except Exception as e:
+                        log_error(f"Unexpected error processing {doc_path.name}: {e}")
+                        failure_count += 1
         
         # Summary
         log_section("Summary")
@@ -783,8 +850,8 @@ Examples:
         if failure_count > 0:
             log_warning(f"Failed: {failure_count}")
         
-        # Clear checkpoint if all files completed successfully
-        if failure_count == 0 and not args.dry_run:
+        # Clear checkpoint if all files completed successfully (sequential mode only)
+        if max_workers == 1 and failure_count == 0 and not args.dry_run:
             clear_checkpoint(base_dir)
         
         if args.dry_run:

@@ -20,6 +20,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 from typing import Dict, List, Optional, Set, Tuple
 
@@ -596,6 +597,16 @@ Examples:
         help='Only regenerate if source files have changed (tracks commit hashes in outline)'
     )
     
+    parser.add_argument(
+        '--parallel',
+        type=int,
+        nargs='?',
+        const=-1,
+        default=0,
+        metavar='WORKERS',
+        help='Enable parallel processing. Optionally specify number of workers (default: auto-detect based on file count and CPU cores)'
+    )
+    
     args = parser.parse_args()
     
     # Determine base directory (should be repo root)
@@ -640,27 +651,79 @@ Examples:
         cleanup_temp = True
     
     try:
-        # Process each doc file
+        # Determine parallel processing strategy
+        num_files = len(doc_files)
+        
+        # Smart defaults for parallel processing
+        if args.parallel == -1:  # Auto-detect
+            # Use parallelism if we have 3+ files
+            # Workers: min(num_files, cpu_count)
+            if num_files >= 3:
+                import multiprocessing
+                max_workers = min(num_files, multiprocessing.cpu_count())
+                log_info(f"Auto-detected {max_workers} workers for {num_files} files")
+            else:
+                max_workers = 1  # Sequential for 1-2 files
+        elif args.parallel > 0:
+            max_workers = args.parallel
+            log_info(f"Using {max_workers} workers (explicitly set)")
+        else:
+            max_workers = 1  # Sequential processing
+        
+        # Process files
         success_count = 0
         failure_count = 0
         
-        for doc_path in doc_files:
-            try:
-                success = process_file(
-                    doc_path,
-                    args.cache_dir,
-                    temp_dir,
-                    base_dir,
-                    args.dry_run,
-                    args.only_if_changed
-                )
-                if success:
-                    success_count += 1
-                else:
+        if max_workers == 1:
+            # Sequential processing
+            for doc_path in doc_files:
+                try:
+                    success = process_file(
+                        doc_path,
+                        args.cache_dir,
+                        temp_dir,
+                        base_dir,
+                        args.dry_run,
+                        args.only_if_changed
+                    )
+                    if success:
+                        success_count += 1
+                    else:
+                        failure_count += 1
+                except Exception as e:
+                    log_error(f"Unexpected error processing {doc_path.name}: {e}")
                     failure_count += 1
-            except Exception as e:
-                log_error(f"Unexpected error processing {doc_path.name}: {e}")
-                failure_count += 1
+        else:
+            # Parallel processing
+            log_info(f"Processing {num_files} files in parallel with {max_workers} workers...")
+            
+            with ThreadPoolExecutor(max_workers=max_workers) as executor:
+                # Submit all tasks
+                future_to_path = {
+                    executor.submit(
+                        process_file,
+                        doc_path,
+                        args.cache_dir,
+                        temp_dir,
+                        base_dir,
+                        args.dry_run,
+                        args.only_if_changed
+                    ): doc_path
+                    for doc_path in doc_files
+                }
+                
+                # Process completed tasks
+                for future in as_completed(future_to_path):
+                    doc_path = future_to_path[future]
+                    try:
+                        success = future.result()
+                        if success:
+                            success_count += 1
+                        else:
+                            failure_count += 1
+                    except Exception as e:
+                        log_error(f"Unexpected error processing {doc_path.name}: {e}")
+                        failure_count += 1
         
         # Summary
         log_section("Summary")
