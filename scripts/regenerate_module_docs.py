@@ -765,12 +765,6 @@ Examples:
         # Determine parallel processing strategy
         num_files = len(module_docs)
         
-        # Parallel processing is incompatible with checkpointing (--continue)
-        # because files must be processed in order for sequential checkpointing
-        if args.continue_from_checkpoint and args.parallel:
-            log_warning("Parallel processing disabled: --continue requires sequential processing")
-            args.parallel = 0
-        
         # Smart defaults for parallel processing
         if args.parallel == -1:  # Auto-detect
             # Use parallelism if we have 3+ files
