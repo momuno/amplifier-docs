@@ -136,38 +136,45 @@ def extract_repo_from_outline(outline_path: Path) -> Optional[str]:
         
         # Look through outline for source file references
         # Outlines contain a list of sections, each with source references
-        sources = set()
+        source_files = []
         
         def extract_sources(obj):
             """Recursively extract source references from outline."""
             if isinstance(obj, dict):
-                # Look for 'source' or 'sources' keys
-                if 'source' in obj:
-                    sources.add(obj['source'])
+                # Look for 'file' key in source objects
+                if 'file' in obj:
+                    source_files.append(obj['file'])
+                # Look for 'sources' key which contains list of source objects
                 if 'sources' in obj:
                     if isinstance(obj['sources'], list):
-                        sources.update(obj['sources'])
-                    else:
-                        sources.add(obj['sources'])
+                        for source_obj in obj['sources']:
+                            extract_sources(source_obj)
                 # Recurse into nested structures
                 for value in obj.values():
-                    extract_sources(value)
+                    if isinstance(value, (dict, list)):
+                        extract_sources(value)
             elif isinstance(obj, list):
                 for item in obj:
                     extract_sources(item)
         
         extract_sources(outline_data)
         
-        # Extract repo names from sources
+        # Extract repo names from source files
+        # Source files are relative paths like: amplifier_app_cli/main.py
+        # We need to convert package names to repo names: amplifier_app_cli -> amplifier-app-cli
         repo_names = set()
-        for source in sources:
-            if isinstance(source, str):
-                # Match pattern: amplifier-*/path
-                match = re.match(r'^(amplifier-[^/]+)', source)
-                if match:
-                    repo_name = match.group(1)
-                    # Skip wildcards
-                    if '*' not in repo_name:
+        for source_file in source_files:
+            if isinstance(source_file, str):
+                # Extract first path component (package/module name)
+                parts = source_file.split('/')
+                if parts:
+                    package_name = parts[0]
+                    # Convert underscores to hyphens to get repo name
+                    # amplifier_app_cli -> amplifier-app-cli
+                    # amplifier_core -> amplifier-core
+                    repo_name = package_name.replace('_', '-')
+                    # Only keep if it looks like an amplifier repo
+                    if repo_name.startswith('amplifier-'):
                         repo_names.add(repo_name)
         
         if repo_names:
@@ -249,6 +256,8 @@ def generate_from_outline(repo_path: Path, outline_path: Path, output_name: str)
     """
     Generate documentation from outline using doc-evergreen.
     
+    The output filename is specified in the outline metadata, not as a command argument.
+    
     Returns path to generated doc file or None on failure.
     """
     log_info(f"Generating documentation from outline for {output_name}...")
@@ -264,8 +273,9 @@ def generate_from_outline(repo_path: Path, outline_path: Path, output_name: str)
         create_docignore(repo_path)
         
         # Run doc-evergreen generate-from-outline
+        # The outline contains the output filename in its metadata, so we only pass the outline path
         result = subprocess.run(
-            ["doc-evergreen", "generate-from-outline", str(outline_path), output_name],
+            ["doc-evergreen", "generate-from-outline", str(outline_path)],
             capture_output=True,
             text=True,
             check=True
