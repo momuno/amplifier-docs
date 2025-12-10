@@ -265,6 +265,9 @@ def generate_from_outline(repo_path: Path, outline_path: Path, output_name: str)
     # Store current directory
     original_dir = Path.cwd()
     
+    # Resolve outline_path to absolute path BEFORE changing directories
+    outline_path = outline_path.resolve()
+    
     try:
         # Change to repo root
         os.chdir(repo_path)
