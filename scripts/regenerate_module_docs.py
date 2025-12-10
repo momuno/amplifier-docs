@@ -178,6 +178,9 @@ def extract_repo_info(source_string: str) -> Optional[Tuple[str, str]]:
     Examples:
         "amplifier-module-tool-bash/amplifier_module_tool_bash/__init__.py"
         -> ("amplifier-module-tool-bash", "amplifier_module_tool_bash/__init__.py")
+        
+        "amplifier-module-provider-*/README.md"
+        -> None (wildcards in repo name are not supported)
     
     Returns tuple of (repo_name, source_file) or None if can't parse.
     """
@@ -192,6 +195,12 @@ def extract_repo_info(source_string: str) -> Optional[Tuple[str, str]]:
     match = re.match(r'^(amplifier-[^/]+)', first_source)
     if match:
         repo_name = match.group(1)
+        
+        # Skip if repo name contains wildcards (can't clone these)
+        # Examples: amplifier-module-provider-*, amplifier-module-tool-*
+        if '*' in repo_name:
+            return None
+        
         # Extract the path after repo name
         source_file = first_source[len(repo_name)+1:] if len(first_source) > len(repo_name) else ""
         return (repo_name, source_file)
