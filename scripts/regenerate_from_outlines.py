@@ -252,6 +252,105 @@ def create_docignore(repo_path: Path) -> bool:
         return False
 
 
+def get_file_commit_hash(repo_path: Path, file_path: str) -> Optional[str]:
+    """
+    Get the git commit hash for a specific file in the repository.
+    
+    Returns the commit hash or None if unable to get it.
+    """
+    original_dir = Path.cwd()
+    
+    try:
+        os.chdir(repo_path)
+        
+        # Get the commit hash for this specific file
+        result = subprocess.run(
+            ["git", "log", "-n", "1", "--pretty=format:%H", "--", file_path],
+            capture_output=True,
+            text=True,
+            check=True
+        )
+        
+        commit_hash = result.stdout.strip()
+        return commit_hash if commit_hash else None
+        
+    except subprocess.CalledProcessError as e:
+        log_warning(f"Failed to get commit hash for {file_path}: {e.stderr}")
+        return None
+    finally:
+        os.chdir(original_dir)
+
+
+def check_sources_changed(repo_path: Path, outline_data: dict) -> Tuple[bool, dict]:
+    """
+    Check if any source files in the outline have changed since last generation.
+    
+    Returns (has_changes, updated_outline_data):
+    - has_changes: True if any sources changed or have no commit hash
+    - updated_outline_data: Outline with updated commit hashes
+    """
+    has_changes = False
+    needs_initial_hashes = False
+    
+    def process_sources(obj):
+        """Recursively process source objects in the outline."""
+        nonlocal has_changes, needs_initial_hashes
+        
+        if isinstance(obj, dict):
+            # If this is a source object with a 'file' key
+            if 'file' in obj:
+                file_path = obj['file']
+                current_hash = get_file_commit_hash(repo_path, file_path)
+                
+                if current_hash:
+                    if 'commit' not in obj:
+                        # No commit hash recorded - add it but mark as needing initial hash
+                        obj['commit'] = current_hash
+                        needs_initial_hashes = True
+                        log_info(f"  Added initial commit hash for {file_path}: {current_hash[:8]}")
+                    else:
+                        # Compare existing hash with current hash
+                        existing_hash = obj['commit']
+                        if existing_hash != current_hash:
+                            has_changes = True
+                            log_info(f"  Changed: {file_path} ({existing_hash[:8]} → {current_hash[:8]})")
+                            obj['commit'] = current_hash
+                        else:
+                            log_info(f"  Unchanged: {file_path} ({current_hash[:8]})")
+                else:
+                    log_warning(f"  Could not get commit hash for {file_path}")
+            
+            # Recurse into nested structures
+            for value in obj.values():
+                if isinstance(value, (dict, list)):
+                    process_sources(value)
+        
+        elif isinstance(obj, list):
+            for item in obj:
+                process_sources(item)
+    
+    # Process all sources in the outline
+    outline_copy = json.loads(json.dumps(outline_data))  # Deep copy
+    process_sources(outline_copy)
+    
+    # If we only added initial hashes and found no changes, don't regenerate
+    if needs_initial_hashes and not has_changes:
+        log_info("Added initial commit hashes - no regeneration needed")
+        return (False, outline_copy)
+    
+    return (has_changes, outline_copy)
+
+
+def save_outline(outline_path: Path, outline_data: dict):
+    """Save updated outline data back to file."""
+    try:
+        with open(outline_path, 'w') as f:
+            json.dump(outline_data, f, indent=2)
+        log_success(f"Updated outline: {outline_path}")
+    except Exception as e:
+        log_error(f"Failed to save outline: {e}")
+
+
 def generate_from_outline(repo_path: Path, outline_path: Path, output_name: str) -> Optional[Path]:
     """
     Generate documentation from outline using doc-evergreen.
@@ -354,10 +453,14 @@ def process_file(
     cache_dir: Path,
     temp_dir: Path,
     base_dir: Path,
-    dry_run: bool = False
+    dry_run: bool = False,
+    only_if_changed: bool = False
 ) -> bool:
     """
     Process a single documentation file.
+    
+    If only_if_changed is True, will check git commit hashes of source files
+    and only regenerate if sources have changed.
     
     Returns True if successful.
     """
@@ -393,13 +496,37 @@ def process_file(
         log_error("Failed to clone repository, skipping")
         return False
     
-    # Step 4: Generate documentation from outline
+    # Step 4: Check if sources have changed (if requested)
+    if only_if_changed:
+        log_info("Checking for source file changes...")
+        
+        # Load the outline
+        try:
+            with open(outline_path, 'r') as f:
+                outline_data = json.load(f)
+        except Exception as e:
+            log_error(f"Failed to load outline: {e}")
+            return False
+        
+        # Check for changes
+        has_changes, updated_outline = check_sources_changed(repo_path, outline_data)
+        
+        # Always save the updated outline (with commit hashes)
+        save_outline(outline_path, updated_outline)
+        
+        if not has_changes:
+            log_success("No source changes detected - skipping regeneration")
+            return True
+        
+        log_info("Source changes detected - proceeding with regeneration")
+    
+    # Step 5: Generate documentation from outline
     generated_file = generate_from_outline(repo_path, outline_path, doc_path.name)
     if not generated_file:
         log_error("Failed to generate documentation, skipping")
         return False
     
-    # Step 5: Copy generated docs to target and cache
+    # Step 6: Copy generated docs to target and cache
     success = copy_generated_docs(
         generated_file,
         doc_path,
@@ -430,6 +557,9 @@ Examples:
   # Regenerate multiple patterns
   python scripts/regenerate_from_outlines.py docs/architecture/ docs/community/ docs/developer/contracts/hook.md
 
+  # Only regenerate if source files have changed
+  python scripts/regenerate_from_outlines.py docs/api/ --only-if-changed
+
   # Dry run
   python scripts/regenerate_from_outlines.py docs/architecture/ --dry-run
         """
@@ -458,6 +588,12 @@ Examples:
         '--keep-repos',
         action='store_true',
         help='Keep cloned repositories in .doc-evergreen/repos/ instead of temp directory'
+    )
+    
+    parser.add_argument(
+        '--only-if-changed',
+        action='store_true',
+        help='Only regenerate if source files have changed (tracks commit hashes in outline)'
     )
     
     args = parser.parse_args()
@@ -515,7 +651,8 @@ Examples:
                     args.cache_dir,
                     temp_dir,
                     base_dir,
-                    args.dry_run
+                    args.dry_run,
+                    args.only_if_changed
                 )
                 if success:
                     success_count += 1
