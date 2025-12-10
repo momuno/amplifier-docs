@@ -22,6 +22,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
@@ -59,6 +60,78 @@ def log_error(msg: str):
 def log_section(msg: str):
     """Log section header."""
     print(f"\n{Colors.BOLD}{msg}{Colors.END}")
+
+
+def get_checkpoint_file(base_dir: Path) -> Path:
+    """Get path to checkpoint file for tracking progress."""
+    return base_dir / ".doc-evergreen" / "regeneration_checkpoint.json"
+
+
+def save_checkpoint(base_dir: Path, completed_file: Path):
+    """
+    Save checkpoint after successful file completion.
+    
+    Stores the relative path of the completed file and timestamp.
+    """
+    checkpoint_file = get_checkpoint_file(base_dir)
+    checkpoint_file.parent.mkdir(parents=True, exist_ok=True)
+    
+    try:
+        # Get relative path for storage
+        rel_path = completed_file.relative_to(base_dir)
+        
+        checkpoint_data = {
+            "last_completed": str(rel_path),
+            "timestamp": datetime.now().isoformat(),
+        }
+        
+        with open(checkpoint_file, 'w') as f:
+            json.dump(checkpoint_data, f, indent=2)
+        
+        log_info(f"Checkpoint saved: {rel_path}")
+        
+    except Exception as e:
+        log_warning(f"Failed to save checkpoint: {e}")
+
+
+def load_checkpoint(base_dir: Path) -> Optional[str]:
+    """
+    Load checkpoint to find last completed file.
+    
+    Returns relative path of last completed file or None if no checkpoint.
+    """
+    checkpoint_file = get_checkpoint_file(base_dir)
+    
+    if not checkpoint_file.exists():
+        return None
+    
+    try:
+        with open(checkpoint_file, 'r') as f:
+            checkpoint_data = json.load(f)
+        
+        last_completed = checkpoint_data.get("last_completed")
+        timestamp = checkpoint_data.get("timestamp", "unknown time")
+        
+        if last_completed:
+            log_info(f"Found checkpoint: {last_completed} (completed at {timestamp})")
+            return last_completed
+        
+    except Exception as e:
+        log_warning(f"Failed to load checkpoint: {e}")
+    
+    return None
+
+
+def clear_checkpoint(base_dir: Path):
+    """Clear checkpoint file after successful completion of all files."""
+    checkpoint_file = get_checkpoint_file(base_dir)
+    
+    if checkpoint_file.exists():
+        try:
+            checkpoint_file.unlink()
+            log_info("Checkpoint cleared")
+        except Exception as e:
+            log_warning(f"Failed to clear checkpoint: {e}")
 
 
 def find_module_docs(base_dir: Path) -> List[Path]:
@@ -464,6 +537,9 @@ Examples:
   
   # Process specific category
   python scripts/regenerate_module_docs.py --category tools
+  
+  # Continue from last successful completion
+  python scripts/regenerate_module_docs.py --from-csv --continue
         """
     )
     
@@ -508,6 +584,13 @@ Examples:
         '--from-csv',
         action='store_true',
         help='Process all entries from DOC_SOURCE_MAPPING.csv that have valid source files'
+    )
+    
+    parser.add_argument(
+        '--continue',
+        dest='continue_from_checkpoint',
+        action='store_true',
+        help='Continue from last successful completion (uses checkpoint file)'
     )
     
     args = parser.parse_args()
@@ -617,6 +700,36 @@ Examples:
     
     log_success(f"Found {len(module_docs)} documentation files")
     
+    # Handle --continue option: skip files up to and including last completed
+    start_index = 0
+    if args.continue_from_checkpoint:
+        last_completed = load_checkpoint(base_dir)
+        if last_completed:
+            # Find the index of the last completed file
+            last_completed_path = base_dir / last_completed
+            try:
+                # Find index of last completed file
+                for i, doc_path in enumerate(module_docs):
+                    if doc_path.resolve() == last_completed_path.resolve():
+                        start_index = i + 1  # Start with next file
+                        log_info(f"Continuing from index {start_index} (after {last_completed})")
+                        break
+                else:
+                    log_warning(f"Last completed file not found in current list: {last_completed}")
+                    log_info("Starting from beginning")
+            except Exception as e:
+                log_warning(f"Error processing checkpoint: {e}")
+                log_info("Starting from beginning")
+        else:
+            log_info("No checkpoint found, starting from beginning")
+    
+    # Skip already-processed files if continuing
+    if start_index > 0:
+        skipped_count = start_index
+        module_docs = module_docs[start_index:]
+        log_info(f"Skipping {skipped_count} already-completed files")
+        log_success(f"Processing {len(module_docs)} remaining documentation files")
+    
     # Create cache directory
     cache_dir = args.cache_dir
     cache_dir.mkdir(parents=True, exist_ok=True)
@@ -655,6 +768,9 @@ Examples:
                 )
                 if success:
                     success_count += 1
+                    # Save checkpoint after each successful completion (unless dry run)
+                    if not args.dry_run:
+                        save_checkpoint(base_dir, doc_path)
                 else:
                     failure_count += 1
             except Exception as e:
@@ -666,6 +782,10 @@ Examples:
         log_success(f"Successfully processed: {success_count}")
         if failure_count > 0:
             log_warning(f"Failed: {failure_count}")
+        
+        # Clear checkpoint if all files completed successfully
+        if failure_count == 0 and not args.dry_run:
+            clear_checkpoint(base_dir)
         
         if args.dry_run:
             log_info("DRY RUN - No changes were made")
