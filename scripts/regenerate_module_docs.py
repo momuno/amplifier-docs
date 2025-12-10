@@ -239,10 +239,10 @@ def clone_repo(repo_name: str, temp_dir: Path) -> Optional[Path]:
 
 def create_docignore(repo_path: Path) -> bool:
     """
-    Create a .docignore file in the repository to exclude markdown files.
+    Create a .docignore file in the repository to exclude markdown files and metadata.
     
     This ensures doc-evergreen only uses source truth files (code, config, etc.)
-    and ignores existing documentation that may be outdated.
+    and ignores existing documentation that may be outdated, as well as its own metadata.
     
     Returns True on success.
     """
@@ -253,8 +253,11 @@ def create_docignore(repo_path: Path) -> bool:
             f.write("# Ignore all markdown documentation files\n")
             f.write("# We only want to generate docs from source truth (code, config, etc.)\n")
             f.write("*.md\n")
+            f.write("\n")
+            f.write("# Ignore doc-evergreen metadata directory\n")
+            f.write(".doc-evergreen/\n")
         
-        log_success(f"Created .docignore to exclude *.md files")
+        log_success(f"Created .docignore to exclude *.md files and .doc-evergreen/")
         return True
         
     except Exception as e:
