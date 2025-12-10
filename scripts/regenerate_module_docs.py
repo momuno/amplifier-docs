@@ -242,7 +242,8 @@ def create_docignore(repo_path: Path) -> bool:
     Create a .docignore file in the repository to exclude markdown files and metadata.
     
     This ensures doc-evergreen only uses source truth files (code, config, etc.)
-    and ignores existing documentation that may be outdated, as well as its own metadata.
+    and ignores existing documentation that may be outdated, as well as its own metadata
+    and git-related files.
     
     Returns True on success.
     """
@@ -254,10 +255,13 @@ def create_docignore(repo_path: Path) -> bool:
             f.write("# We only want to generate docs from source truth (code, config, etc.)\n")
             f.write("*.md\n")
             f.write("\n")
-            f.write("# Ignore doc-evergreen metadata directory\n")
+            f.write("# Ignore metadata and configuration files\n")
             f.write(".doc-evergreen/\n")
+            f.write(".git/\n")
+            f.write(".gitignore\n")
+            f.write(".docignore\n")
         
-        log_success(f"Created .docignore to exclude *.md files and .doc-evergreen/")
+        log_success(f"Created .docignore to exclude *.md, .doc-evergreen/, and git files")
         return True
         
     except Exception as e:
