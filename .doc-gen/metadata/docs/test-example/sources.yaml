@@ -1,11 +1,14 @@
 repositories:
 - url: https://github.com/microsoft/amplifier-core
+  # Use EITHER include OR exclude patterns (not both)
   include:
-  - '*.py'
-  - README.md
-  exclude:
-  - tests/**
-  - '**/__pycache__/**'
+  - '**/*.py'      # All Python files (recursive)
+  - '**/*.md'      # All Markdown files (recursive)
+  - 'README.md'    # Specific files
+  # To use exclude instead, comment out include and uncomment exclude:
+  # exclude:
+  #   - 'tests/**'
+  #   - '**/__pycache__/**'
 metadata:
   purpose: Document the functionality of the kernel. This is a reference document only.
   last_updated: null

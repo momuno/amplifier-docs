@@ -46,8 +46,9 @@ class TestMetadataManager:
         assert "repositories" in data
         assert len(data["repositories"]) == 1
         assert "url" in data["repositories"][0]
-        assert "include" in data["repositories"][0]
-        assert "exclude" in data["repositories"][0]
+        assert "include" in data["repositories"][0]  # Template uses include by default
+        # Exclude should NOT be present (include OR exclude, not both)
+        assert "exclude" not in data["repositories"][0]
         assert "metadata" in data
         assert "purpose" in data["metadata"]
 

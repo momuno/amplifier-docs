@@ -33,14 +33,19 @@ class MetadataManager:
             "repositories": [
                 {
                     "url": "https://github.com/owner/repo.git",
+                    # Use EITHER include OR exclude patterns (not both)
+                    # Include: specify what files to include
                     "include": [
-                        "*.py",
-                        "README.md",
+                        "**/*.py",      # All Python files (recursive)
+                        "**/*.md",      # All Markdown files (recursive)
+                        "README.md",    # Specific files
                     ],
-                    "exclude": [
-                        "tests/**",
-                        "**/__pycache__/**",
-                    ],
+                    # OR exclude: specify what files to exclude (uncomment to use)
+                    # "exclude": [
+                    #     "tests/**",
+                    #     "**/__pycache__/**",
+                    #     "**/*.pyc",
+                    # ],
                 }
             ],
             "metadata": {

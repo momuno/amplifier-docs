@@ -14,7 +14,7 @@ class Config:
 
     # LLM Configuration
     llm_provider: str = "anthropic"  # anthropic, openai
-    llm_model: str = "claude-3-5-sonnet-20240620"  # claude-3-5-sonnet-20240620, claude-3-opus-20240229
+    llm_model: str = "claude-sonnet-4-5-20250929"  # claude-sonnet-4-5-20250929 (recommended), claude-3-7-sonnet-20250219
     llm_api_key: Optional[str] = None
     llm_timeout: int = 60  # seconds
 

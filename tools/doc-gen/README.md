@@ -22,8 +22,8 @@ Or create a config file at `.doc-gen/config.yaml`:
 ```yaml
 llm:
   provider: anthropic  # anthropic (default), openai (optional)
-  model: claude-3-5-sonnet-20240620  # Recommended: fast and capable
-  # Other models: claude-3-opus-20240229 (most capable), claude-3-haiku-20240229 (fastest)
+  model: claude-sonnet-4-5-20250929  # Recommended: best balance of intelligence, speed, and cost
+  # Other models: claude-3-7-sonnet-20250219 (legacy)
   timeout: 60
 
 repositories:

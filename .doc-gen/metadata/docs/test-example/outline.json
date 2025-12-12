@@ -1,0 +1,373 @@
+{
+  "title": "Amplifier Core Kernel Reference Documentation",
+  "sections": [
+    {
+      "heading": "Overview and Architecture",
+      "topics": [
+        "Purpose and design philosophy",
+        "Core responsibilities",
+        "Kernel vs. modules architecture",
+        "Mechanisms vs. policies principle",
+        "Stability guarantees"
+      ],
+      "sources": [
+        {
+          "file": "README.md",
+          "relevant_lines": "1-60",
+          "note": "Extract purpose, architecture diagram, and core responsibilities",
+          "commit_hash": "6aaacc425795c003842be8d40be982122001471c"
+        },
+        {
+          "file": "README.md",
+          "relevant_lines": "62-90",
+          "note": "Document design philosophy including mechanisms vs policies table and litmus test",
+          "commit_hash": "6aaacc425795c003842be8d40be982122001471c"
+        }
+      ]
+    },
+    {
+      "heading": "Core Concepts",
+      "topics": [
+        "Session lifecycle and execution context",
+        "Mount Plan configuration structure",
+        "Coordinator infrastructure context",
+        "Module types and protocols overview",
+        "Structural typing approach"
+      ],
+      "sources": [
+        {
+          "file": "README.md",
+          "relevant_lines": "104-128",
+          "note": "Define Session, Mount Plan, Coordinator, and module types with their key methods",
+          "commit_hash": "6aaacc425795c003842be8d40be982122001471c"
+        }
+      ]
+    },
+    {
+      "heading": "Module System",
+      "topics": [
+        "Module discovery and loading mechanism",
+        "Entry point registration",
+        "Mount function signature and lifecycle",
+        "Cleanup function pattern",
+        "Protocol-based interfaces"
+      ],
+      "sources": [
+        {
+          "file": "README.md",
+          "relevant_lines": "152-195",
+          "note": "Cover module development pattern, mount function, and entry point configuration",
+          "commit_hash": "6aaacc425795c003842be8d40be982122001471c"
+        }
+      ]
+    },
+    {
+      "heading": "Session Management",
+      "topics": [
+        "Session initialization",
+        "Session execution flow",
+        "Session cleanup and resource management",
+        "Configuration and mount plan usage",
+        "Async context manager pattern"
+      ],
+      "sources": [
+        {
+          "file": "README.md",
+          "relevant_lines": "130-150",
+          "note": "Document API example showing session creation, configuration, and usage",
+          "commit_hash": "6aaacc425795c003842be8d40be982122001471c"
+        }
+      ]
+    },
+    {
+      "heading": "Provider Protocol",
+      "topics": [
+        "Provider interface requirements",
+        "LLM backend integration",
+        "Model listing and information",
+        "Completion method signature",
+        "Tool call parsing"
+      ],
+      "sources": [
+        {
+          "file": "README.md",
+          "relevant_lines": "120-122",
+          "note": "List Provider protocol methods: name, complete(), parse_tool_calls(), get_info(), list_models()",
+          "commit_hash": "6aaacc425795c003842be8d40be982122001471c"
+        },
+        {
+          "file": "README.md",
+          "relevant_lines": "207",
+          "note": "Reference to Provider Contract documentation",
+          "commit_hash": "6aaacc425795c003842be8d40be982122001471c"
+        }
+      ]
+    },
+    {
+      "heading": "Tool Protocol",
+      "topics": [
+        "Tool interface requirements",
+        "Tool name and description properties",
+        "Execute method and input handling",
+        "ToolResult structure",
+        "Error handling in tools"
+      ],
+      "sources": [
+        {
+          "file": "README.md",
+          "relevant_lines": "123",
+          "note": "List Tool protocol methods: name, description, execute()",
+          "commit_hash": "6aaacc425795c003842be8d40be982122001471c"
+        },
+        {
+          "file": "README.md",
+          "relevant_lines": "152-195",
+          "note": "Show complete Tool implementation example with ToolResult",
+          "commit_hash": "6aaacc425795c003842be8d40be982122001471c"
+        },
+        {
+          "file": "README.md",
+          "relevant_lines": "208",
+          "note": "Reference to Tool Contract documentation",
+          "commit_hash": "6aaacc425795c003842be8d40be982122001471c"
+        }
+      ]
+    },
+    {
+      "heading": "Orchestrator Protocol",
+      "topics": [
+        "Orchestrator interface requirements",
+        "Execution loop patterns",
+        "Session coordination",
+        "Strategy implementation"
+      ],
+      "sources": [
+        {
+          "file": "README.md",
+          "relevant_lines": "124",
+          "note": "List Orchestrator protocol method: execute()",
+          "commit_hash": "6aaacc425795c003842be8d40be982122001471c"
+        },
+        {
+          "file": "README.md",
+          "relevant_lines": "210",
+          "note": "Reference to Orchestrator Contract documentation",
+          "commit_hash": "6aaacc425795c003842be8d40be982122001471c"
+        }
+      ]
+    },
+    {
+      "heading": "Context Manager Protocol",
+      "topics": [
+        "ContextManager interface requirements",
+        "Message storage and retrieval",
+        "Conversation history management",
+        "Context compaction strategies"
+      ],
+      "sources": [
+        {
+          "file": "README.md",
+          "relevant_lines": "125",
+          "note": "List ContextManager protocol methods: add_message(), get_messages(), compact()",
+          "commit_hash": "6aaacc425795c003842be8d40be982122001471c"
+        },
+        {
+          "file": "README.md",
+          "relevant_lines": "211",
+          "note": "Reference to Context Contract documentation",
+          "commit_hash": "6aaacc425795c003842be8d40be982122001471c"
+        }
+      ]
+    },
+    {
+      "heading": "Hook System",
+      "topics": [
+        "Hook protocol and interface",
+        "Event emission mechanism",
+        "Hook registration and lifecycle",
+        "HookResult structure",
+        "Observability patterns"
+      ],
+      "sources": [
+        {
+          "file": "README.md",
+          "relevant_lines": "126",
+          "note": "List Hook protocol signature: async function with event, data \u2192 HookResult",
+          "commit_hash": "6aaacc425795c003842be8d40be982122001471c"
+        },
+        {
+          "file": "README.md",
+          "relevant_lines": "209",
+          "note": "Reference to Hook Contract documentation",
+          "commit_hash": "6aaacc425795c003842be8d40be982122001471c"
+        },
+        {
+          "file": "README.md",
+          "relevant_lines": "218",
+          "note": "Reference to Hooks API detailed guide",
+          "commit_hash": "6aaacc425795c003842be8d40be982122001471c"
+        }
+      ]
+    },
+    {
+      "heading": "Mount Plan Specification",
+      "topics": [
+        "Configuration structure",
+        "Session configuration section",
+        "Provider mounting",
+        "Tool mounting",
+        "Module-specific configuration"
+      ],
+      "sources": [
+        {
+          "file": "README.md",
+          "relevant_lines": "132-149",
+          "note": "Show complete mount plan example with session, providers, and tools sections",
+          "commit_hash": "6aaacc425795c003842be8d40be982122001471c"
+        },
+        {
+          "file": "README.md",
+          "relevant_lines": "213",
+          "note": "Reference to Mount Plan Specification documentation",
+          "commit_hash": "6aaacc425795c003842be8d40be982122001471c"
+        }
+      ]
+    },
+    {
+      "heading": "Coordinator API",
+      "topics": [
+        "Coordinator injection pattern",
+        "Session ID access",
+        "Configuration access",
+        "Hook system access",
+        "Mount point registration"
+      ],
+      "sources": [
+        {
+          "file": "README.md",
+          "relevant_lines": "112-114",
+          "note": "Document Coordinator as infrastructure context with session_id, config, hooks, and mount points",
+          "commit_hash": "6aaacc425795c003842be8d40be982122001471c"
+        },
+        {
+          "file": "README.md",
+          "relevant_lines": "170-171",
+          "note": "Show coordinator.mount() usage in module example",
+          "commit_hash": "6aaacc425795c003842be8d40be982122001471c"
+        }
+      ]
+    },
+    {
+      "heading": "Module Entry Points",
+      "topics": [
+        "Entry point registration via pyproject.toml",
+        "amplifier.modules namespace",
+        "Module naming conventions",
+        "Discovery mechanism"
+      ],
+      "sources": [
+        {
+          "file": "README.md",
+          "relevant_lines": "187-190",
+          "note": "Show entry point configuration in pyproject.toml",
+          "commit_hash": "6aaacc425795c003842be8d40be982122001471c"
+        },
+        {
+          "file": "README.md",
+          "relevant_lines": "197-199",
+          "note": "Reference to complete module development guide",
+          "commit_hash": "6aaacc425795c003842be8d40be982122001471c"
+        }
+      ]
+    },
+    {
+      "heading": "Advanced Features",
+      "topics": [
+        "Session forking for delegation",
+        "Custom module source protocol",
+        "Contribution channels",
+        "Module versioning and compatibility"
+      ],
+      "sources": [
+        {
+          "file": "README.md",
+          "relevant_lines": "219-221",
+          "note": "Reference Session Forking and Module Source Protocol documentation",
+          "commit_hash": "6aaacc425795c003842be8d40be982122001471c"
+        },
+        {
+          "file": "README.md",
+          "relevant_lines": "215",
+          "note": "Reference Contribution Channels specification",
+          "commit_hash": "6aaacc425795c003842be8d40be982122001471c"
+        }
+      ]
+    },
+    {
+      "heading": "Dependencies and Requirements",
+      "topics": [
+        "Minimal dependency philosophy",
+        "Required packages",
+        "Python version requirements",
+        "Installation methods"
+      ],
+      "sources": [
+        {
+          "file": "README.md",
+          "relevant_lines": "91-93",
+          "note": "List minimal dependencies: pydantic, tomli, pyyaml, typing-extensions",
+          "commit_hash": "6aaacc425795c003842be8d40be982122001471c"
+        },
+        {
+          "file": "README.md",
+          "relevant_lines": "97-99",
+          "note": "Reference main Amplifier repository for installation",
+          "commit_hash": "6aaacc425795c003842be8d40be982122001471c"
+        }
+      ]
+    },
+    {
+      "heading": "Testing and Development",
+      "topics": [
+        "Test execution with pytest",
+        "Coverage reporting",
+        "Development workflow",
+        "Module testing patterns"
+      ],
+      "sources": [
+        {
+          "file": "README.md",
+          "relevant_lines": "227-231",
+          "note": "Document testing commands using uv and pytest",
+          "commit_hash": "6aaacc425795c003842be8d40be982122001471c"
+        }
+      ]
+    },
+    {
+      "heading": "Reference Documentation Index",
+      "topics": [
+        "Contract documentation links",
+        "Specification documentation links",
+        "Detailed guide links",
+        "Philosophy documentation"
+      ],
+      "sources": [
+        {
+          "file": "README.md",
+          "relevant_lines": "201-225",
+          "note": "Compile complete index of all documentation resources organized by category",
+          "commit_hash": "6aaacc425795c003842be8d40be982122001471c"
+        }
+      ]
+    }
+  ],
+  "_commit_hashes": {
+    "README.md": "6aaacc425795c003842be8d40be982122001471c"
+  },
+  "_metadata": {
+    "generated_at": 1765580551.7073886,
+    "model": "claude-sonnet-4-5-20250929",
+    "tokens_used": 4768,
+    "duration_seconds": 32.91321277618408
+  }
+}
