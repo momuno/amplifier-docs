@@ -1,0 +1,134 @@
+{
+  "_meta": {
+    "name": "hooks-api-outline",
+    "description": "API reference documentation for HookRegistry and HookResult in the Amplifier hooks system",
+    "use_case": "Reference documentation for developers using the hooks API to register handlers and return results",
+    "quadrant": "reference",
+    "estimated_lines": "200-300 lines",
+    "generation_method": "forward",
+    "doc_type": "reference",
+    "user_intent": "Provide complete API reference for HookRegistry methods and HookResult structure with usage examples"
+  },
+  "document": {
+    "title": "Hooks API",
+    "output": "api-core-hooks.md",
+    "sections": [
+      {
+        "heading": "# Hooks API",
+        "level": 1,
+        "prompt": "Introduce the Hooks API, explaining that hooks provide observability, control, and context injection capabilities. Include a reference to the source file amplifier_core/hooks.py.",
+        "sources": [
+          {
+            "file": "hooks.py",
+            "reasoning": "Lines 1-17 provide the module docstring explaining the hook system's purpose and the HookRegistry class that implements the API"
+          }
+        ],
+        "sections": [
+          {
+            "heading": "## HookRegistry",
+            "level": 2,
+            "prompt": "Introduce HookRegistry as the class that manages hook registration and event emission. Provide a brief overview of its role in the hooks system.",
+            "sources": [
+              {
+                "file": "hooks.py",
+                "reasoning": "Lines 32-36 define the HookRegistry class with docstring explaining it manages lifecycle hooks with deterministic execution"
+              }
+            ],
+            "sections": [
+              {
+                "heading": "### Methods",
+                "level": 3,
+                "prompt": "Introduce the key methods available on HookRegistry for registering handlers and emitting events.",
+                "sources": [
+                  {
+                    "file": "hooks.py",
+                    "reasoning": "Lines 64-96 contain the register method and lines 111-186 contain the emit method, which are the primary API surface"
+                  }
+                ],
+                "sections": [
+                  {
+                    "heading": "#### `register(event, handler)`",
+                    "level": 4,
+                    "prompt": "Document the register method for registering a handler for an event. Show the method signature with parameters (event, handler, priority, name), explain what it returns (unregister function), and provide a complete code example showing handler definition and registration.",
+                    "sources": [
+                      {
+                        "file": "hooks.py",
+                        "reasoning": "Lines 64-96 contain the complete register method implementation with detailed docstring explaining parameters (event, handler, priority, name), return value (unregister function), and the registration logic including priority sorting"
+                      }
+                    ],
+                    "sections": []
+                  },
+                  {
+                    "heading": "#### `emit(event, data) -> list[HookResult]`",
+                    "level": 4,
+                    "prompt": "Document the emit method for emitting an event to all registered handlers. Show the method signature, explain the execution behavior (sequential by priority, short-circuit on deny, data modification chaining), and provide a code example showing event emission.",
+                    "sources": [
+                      {
+                        "file": "hooks.py",
+                        "reasoning": "Lines 111-186 contain the emit method with comprehensive docstring explaining sequential execution, short-circuit on deny, data modification chaining, and the return value. The implementation shows how handlers are invoked and results are processed"
+                      }
+                    ],
+                    "sections": []
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "heading": "## HookResult",
+            "level": 2,
+            "prompt": "Introduce HookResult as the data structure returned by hook handlers to control execution flow. Include a reference to the source file amplifier_core/models.py.",
+            "sources": [
+              {
+                "file": "HOOK_CONTRACT.md",
+                "reasoning": "Lines 76-78 introduce HookResult with reference to amplifier_core/models.py as the source of the model definition"
+              }
+            ],
+            "sections": [
+              {
+                "heading": "### Actions",
+                "level": 3,
+                "prompt": "Document the available action types in HookResult. Present as a table with action name and description columns, covering: continue (continue execution), deny (block operation), modify (modify event data), inject_context (inject message into agent context), and ask_user (request user approval).",
+                "sources": [
+                  {
+                    "file": "HOOK_CONTRACT.md",
+                    "reasoning": "Lines 80-86 contain the action types table with action names, behaviors, and use cases for all five action types"
+                  },
+                  {
+                    "file": "hooks.py",
+                    "reasoning": "Lines 154-170 implement the action processing logic showing how each action type (deny, modify, inject_context, ask_user) is handled during emit"
+                  }
+                ],
+                "sections": []
+              },
+              {
+                "heading": "### Fields",
+                "level": 3,
+                "prompt": "Document the complete HookResult data structure showing all fields as a dataclass definition with type annotations. Include fields for: action (str), reason and data for deny/modify, context_injection and context_injection_role for inject_context, approval_prompt/options/timeout/default for ask_user, and suppress_output/user_message/user_message_level for output control.",
+                "sources": [
+                  {
+                    "file": "HOOK_CONTRACT.md",
+                    "reasoning": "Lines 76-110 document HookResult structure with field groupings and their purposes, though the actual dataclass definition would reference models.py"
+                  }
+                ],
+                "sections": []
+              },
+              {
+                "heading": "### Examples",
+                "level": 3,
+                "prompt": "Provide concrete code examples for each action type: continue (observe only), deny (block operation with reason), inject_context (add context with user message), and ask_user (request approval with prompt and default). Each example should show the HookResult construction with relevant fields.",
+                "sources": [
+                  {
+                    "file": "HOOK_CONTRACT.md",
+                    "reasoning": "Lines 88-110 provide complete examples for all action types: continue (line 92), deny (lines 94-95), inject_context (lines 98-102), and ask_user (lines 104-109), showing proper field usage for each action"
+                  }
+                ],
+                "sections": []
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}
