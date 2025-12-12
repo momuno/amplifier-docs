@@ -138,13 +138,27 @@ MVP focuses on per-doc operations and simple orchestration. Batch operations are
 ### Interactive Source Editor
 
 **What it does:**
-- TUI (Terminal UI) for editing `sources.yaml`
+- **Interactive init prompts** (lightweight enhancement)
+- TUI (Terminal UI) for editing `sources.yaml` (full feature)
 - Visual file browser to select includes/excludes
 - Real-time validation as you edit
 - Repository preview (show matched files before saving)
 - Templates for common source patterns
 
 **Functionality includes:**
+
+**Phase 1: Interactive Init Prompts** (Quick Win - Sprint 1.5 or Sprint 6)
+- `doc-gen init <doc-path>` prompts for:
+  - Document purpose
+  - Repository URL(s)
+  - Include patterns (comma-separated)
+  - Exclude patterns (comma-separated)
+- Optional: `doc-gen init <doc-path> --interactive` flag for guided mode
+- Generates customized `sources.yaml` instead of generic template
+- Uses `click.prompt()` for simple input collection
+- **User feedback:** "I thought init would ask me questions to fill in the YAML"
+
+**Phase 2: Full TUI Editor** (Advanced Feature)
 - `doc-gen edit-sources <doc-path>` opens TUI
 - Browse repository file tree interactively
 - Toggle include/exclude patterns visually
@@ -155,15 +169,23 @@ MVP focuses on per-doc operations and simple orchestration. Batch operations are
 **Why deferred:**
 MVP uses manual YAML editing, which is sufficient for power users. Interactive editor is nice-to-have but adds significant complexity. YAML is hand-editable and version-controllable.
 
+**Phase 1 (prompts) should be reconsidered early** - simple UX improvement with high user value.
+
 **Reconsider when:**
-- Non-technical users need to define sources
-- Common errors emerge from manual YAML editing
+- **Phase 1**: Sprint 6 (polish) or immediately as Sprint 1.5 enhancement
+- **Phase 2**: Non-technical users need to define sources, common YAML editing errors emerge
 - Users request "easier way to specify sources"
 - Pattern selection becomes tedious
 
-**Effort:** 2 weeks  
-**Complexity:** Medium-High  
-**Theme:** ux, interactive, tui
+**Effort:** 
+- Phase 1: 30-60 minutes
+- Phase 2: 2 weeks
+
+**Complexity:** 
+- Phase 1: Low
+- Phase 2: Medium-High
+
+**Theme:** ux, interactive, tui, onboarding
 
 ---
 
