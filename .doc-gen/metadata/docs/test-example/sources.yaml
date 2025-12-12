@@ -1,0 +1,11 @@
+repositories:
+- url: https://github.com/microsoft/amplifier-core
+  include:
+  - '*.py'
+  - README.md
+  exclude:
+  - tests/**
+  - '**/__pycache__/**'
+metadata:
+  purpose: Document the functionality of the kernel. This is a reference document only.
+  last_updated: null

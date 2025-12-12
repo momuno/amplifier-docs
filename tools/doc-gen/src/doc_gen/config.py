@@ -13,8 +13,8 @@ class Config:
     """Global configuration for doc-gen."""
 
     # LLM Configuration
-    llm_provider: str = "openai"  # openai, anthropic
-    llm_model: str = "gpt-4"
+    llm_provider: str = "anthropic"  # anthropic, openai
+    llm_model: str = "claude-3-5-sonnet-20241022"  # claude-3-5-sonnet-20241022, claude-3-opus-20240229
     llm_api_key: Optional[str] = None
     llm_timeout: int = 60  # seconds
 
@@ -57,11 +57,11 @@ class Config:
 
         # 2. Override with environment variables
         # Determine which API key to load based on provider
-        provider = config_dict.get("llm_provider", "openai")
-        if provider == "openai":
-            env_key = os.getenv("OPENAI_API_KEY")
-        elif provider == "anthropic":
+        provider = config_dict.get("llm_provider", "anthropic")
+        if provider == "anthropic":
             env_key = os.getenv("ANTHROPIC_API_KEY")
+        elif provider == "openai":
+            env_key = os.getenv("OPENAI_API_KEY")
         else:
             env_key = None
 

@@ -1,0 +1,11 @@
+repositories:
+- url: https://github.com/owner/repo.git
+  include:
+  - '*.py'
+  - README.md
+  exclude:
+  - tests/**
+  - '**/__pycache__/**'
+metadata:
+  purpose: Document the [feature/module] functionality
+  last_updated: null

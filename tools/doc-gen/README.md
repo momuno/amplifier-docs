@@ -11,24 +11,27 @@ pip install -e .
 
 ## Configuration
 
-Copy `.env.example` to `.env` and add your API keys, or set environment variables:
+Set your Anthropic API key (recommended):
 
 ```bash
-export OPENAI_API_KEY=your-key-here
+export ANTHROPIC_API_KEY=your-key-here
 ```
 
-Alternatively, create a config file at `.doc-gen/config.yaml`:
+Or create a config file at `.doc-gen/config.yaml`:
 
 ```yaml
 llm:
-  provider: openai  # openai, anthropic
-  model: gpt-4
+  provider: anthropic  # anthropic (default), openai (optional)
+  model: claude-3-5-sonnet-20241022  # Recommended: fast and capable
+  # Other models: claude-3-opus-20240229 (most capable), claude-3-haiku-20240229 (fastest)
   timeout: 60
 
 repositories:
   # Optional: custom temp directory
   # temp_dir: /custom/temp/dir
 ```
+
+**OpenAI Support** (optional): Set `provider: openai` and use `OPENAI_API_KEY` if you prefer GPT models.
 
 ## Usage
 
