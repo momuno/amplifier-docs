@@ -26,9 +26,10 @@ Integrate LLM for outline generation with robust prompt engineering and support 
    - Duration tracking for performance monitoring
    - JSON mode support for structured outputs
 
-2. **Outline Generator** (`outline.py`) - 250 LOC + 17 tests
+2. **Outline Generator** (`outline.py`) - 250 LOC + 18 tests
    - Prompt engineering with system + user prompts
    - JSON schema validation for LLM responses
+   - Section-level "prompt" field for document generation guidance
    - Commit hash embedding for change detection
    - Generation metadata tracking (tokens, duration, model)
    - File truncation for large sources (>10k chars)
@@ -95,8 +96,9 @@ Pattern worked excellently for LLM integration - tests caught edge cases early (
 1. **Abstract Interface Works**: LLMClient base class made adding Anthropic trivial after OpenAI was built
 2. **JSON Mode is Essential**: Structured output dramatically reduces parsing errors
 3. **Prompt Engineering Matters**: System prompt + user prompt pattern provides good control
-4. **Token Tracking is Valuable**: Users appreciate cost visibility
-5. **Error Handling is Critical**: LLM APIs fail in various ways - comprehensive handling prevents user confusion
+4. **Section-level Prompts Enable Sprint 3**: Adding "prompt" field to each section provides clear instructions for document generation
+5. **Token Tracking is Valuable**: Users appreciate cost visibility
+6. **Error Handling is Critical**: LLM APIs fail in various ways - comprehensive handling prevents user confusion
 
 ### Process Insights
 1. **TDD Caught Edge Cases**: Tests for malformed JSON, missing fields, timeouts prevented bugs
@@ -171,7 +173,7 @@ None - Sprint 3 (Document Generation) is the correct next step. LLM integration 
 
 ## Statistics
 
-- **Total Tests**: 93 (92 passing, 1 edge case)
+- **Total Tests**: 94 (93 passing, 1 edge case)
 - **Test Success Rate**: 98.9%
 - **Test Coverage**: 92% overall
   - llm_client.py: 69% (OpenAI: 98%, Anthropic: 98% when isolated)
@@ -180,7 +182,7 @@ None - Sprint 3 (Document Generation) is the correct next step. LLM integration 
 - **Lines of Code**: 600 production, 350 test (950 total for Sprint 2)
 - **Files Created**: 3 production, 4 test, 2 documentation
 - **Sprint Duration**: ~4 hours (faster than 1-1.5 week estimate due to TDD efficiency)
-- **Commits**: 7 clean commits (one per major component + fixes)
+- **Commits**: 8 clean commits (one per major component + fixes + prompt field enhancement)
 
 ## Usage Examples
 
