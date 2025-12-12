@@ -1,0 +1,48 @@
+generation_timestamp: "2025-12-12T09:59:16Z"
+user_intent: "Create a comprehensive developer guide covering architecture, API usage, and best practices. Use clear examples and maintain a tutorial style."
+output_filename: "developer-guide.md"
+recipe_version: "1.1.0"
+recipe_name: "doc-outline-generator"
+
+sources_evaluated: 30
+sources_selected: 20
+sources_threshold: 6
+
+repositories_cloned:
+  - url: "https://github.com/microsoft/amplifier-core"
+    location: "/tmp/doc-gen-085dc995/amplifier-core"
+    files_discovered: 15
+  - url: "https://github.com/microsoft/amplifier-profiles"
+    location: "/tmp/doc-gen-20a4fe88/amplifier-profiles"
+    files_discovered: 1
+  - url: "https://github.com/microsoft/amplifier-collections"
+    location: "/tmp/doc-gen-30c6b901/amplifier-collections"
+    files_discovered: 1
+  - url: "https://github.com/microsoft/amplifier-config"
+    location: "/tmp/doc-gen-4dc56b3b/amplifier-config"
+    files_discovered: 1
+  - url: "https://github.com/microsoft/amplifier-module-resolution"
+    location: "/tmp/doc-gen-1b6665d4/amplifier-module-resolution"
+    files_discovered: 12
+
+repositories_local: []
+
+outline_path: ".doc-gen/developer-guide.md.outline.yaml"
+sources_path: ".doc-gen/developer-guide.md.sources.yaml"
+
+top_sources:
+  - file: "DESIGN_PHILOSOPHY.md"
+    score: 10
+    reason: "Foundational 'why' behind all architectural decisions"
+  - file: "amplifier-core/README.md"
+    score: 9
+    reason: "Architecture overview and entry point"
+  - file: "HOOKS_API.md"
+    score: 9
+    reason: "Complete extensibility system reference"
+  - file: "MOUNT_PLAN_SPECIFICATION.md"
+    score: 9
+    reason: "Central configuration contract"
+  - file: "amplifier-profiles/README.md"
+    score: 8
+    reason: "Developer-facing configuration system"

@@ -1,0 +1,329 @@
+name: "doc-outline-generator"
+description: "Generate document outlines by analyzing source files from multiple repositories for relevancy against user intent"
+version: "1.1.0"
+tags: ["documentation", "outline", "analysis", "multi-repo"]
+
+# Required context variables that must be provided when executing this recipe
+context:
+  user_intent: ""           # Required: High-level description/instruction set for the document
+  source_spec_file: ""      # Required: Path to YAML file specifying source repositories and files
+  output_filename: ""       # Required: Name of the file this outline will generate (e.g., "developer-guide.md")
+  metadata_dir: ".doc-gen"  # Optional: Directory where metadata should be stored (default: .doc-gen)
+
+# Multi-stage pipeline for outline generation
+steps:
+  # Stage 1: Validate the source specification file
+  - id: "validate-source-spec"
+    agent: "developer-expertise:researcher"
+    prompt: |
+      Read and validate the source specification file at: {{source_spec_file}}
+      
+      The file should be in YAML format with this structure:
+      ```yaml
+      repositories:
+        - source: "https://github.com/user/repo.git"  # Remote URL
+          mode: ignore  # or "include"
+          patterns:
+            - "*.pattern"
+        - source: "/path/to/repo"  # Local path
+          mode: include
+          patterns:
+            - "src/**/*.py"
+      ```
+      
+      Validation requirements:
+      1. Parse the YAML structure successfully
+      2. Ensure each repository entry has a valid 'source' field
+      3. Ensure each repository has EITHER "ignore" OR "include" mode (validate mode value)
+      4. Validate source format:
+         - If source is a local path: Verify the directory exists on the filesystem
+         - If source is a URL: Verify it matches git URL patterns (http://, https://, git://, or git@)
+         - Don't fail on URLs that can't be validated locally (they'll be cloned in next stage)
+      5. Ensure patterns list is present and valid
+      
+      If validation FAILS:
+      - Return clear error message indicating what is wrong
+      - Include line/field information if possible
+      - Recipe will halt here
+      
+      If validation SUCCEEDS:
+      - Return the validated repository list with parsed configurations
+      - Include summary: number of repositories, modes used, pattern counts
+      
+      Return structured validation result with status and details.
+    output: "validated_spec"
+    timeout: 300
+    on_error: "fail"  # Critical - recipe cannot continue without valid spec
+
+  # Stage 2: Discover all source files matching the specification
+  - id: "discover-source-files"
+    agent: "foundation:explorer"
+    prompt: |
+      Based on the validated source specification from previous step:
+      {{validate-source-spec.output}}
+      
+      For each repository in the specification:
+      
+      1. Handle remote vs local sources:
+         - If source is a URL (starts with http://, https://, git://, or git@):
+           * Create a temporary directory: /tmp/doc-gen-{hash of URL}/{repo-name}/
+           * Clone the repository using shallow clone: git clone --depth 1 {url} {temp_dir}
+           * Track this as a cloned repository (for cleanup later)
+           * Handle errors: network issues, invalid URL, authentication required
+           * Provide clear error messages if clone fails
+         - If source is a local path:
+           * Use the path directly (no cloning needed)
+           * Track this as a local repository
+      
+      2. Navigate to the repository (cloned temp dir or local path)
+      
+      3. Apply the filtering mode:
+         - If mode is "ignore": Collect ALL files EXCEPT those matching the patterns
+         - If mode is "include": Collect ONLY files that match the patterns
+      
+      4. For each collected file, capture:
+         - Full absolute file path
+         - Repository it belongs to (original source URL or local path)
+         - Whether it was cloned (for cleanup tracking)
+         - File type/extension
+         - Approximate file size (if relevant)
+      
+      Important:
+      - Scan recursively through directories
+      - Exclude common non-source directories (node_modules, .git, __pycache__, etc.) unless explicitly included
+      - If a repository yields NO files, note this as a warning but continue
+      - If a clone fails, provide clear error message and continue with remaining repos
+      
+      Return:
+      - Complete list of discovered source file paths
+      - Repository context for each file (original source, cloned location if applicable)
+      - List of temporary directories created (for cleanup)
+      - Summary statistics (files per repository, total files, cloned vs local repos)
+      - Any warnings (e.g., "Repository X yielded 0 files", "Failed to clone URL Y")
+    output: "discovered_files"
+    timeout: 900  # Increased to 15 minutes to account for git cloning
+    depends_on: ["validate-source-spec"]
+    on_error: "fail"  # If discovery fails, we have nothing to analyze
+
+  # Stage 3: Evaluate relevancy of each discovered file
+  - id: "evaluate-relevancy"
+    agent: "developer-expertise:researcher"
+    prompt: |
+      User's intent for the document:
+      {{user_intent}}
+      
+      Discovered source files:
+      {{discover-source-files.output}}
+      
+      For each discovered source file:
+      
+      1. Read the file content (handle encoding errors gracefully)
+      2. Analyze content against the user intent
+      3. Score relevancy on a scale of 1-10 where:
+         - 1-3: Not relevant or minimally relevant
+         - 4-5: Somewhat relevant but peripheral
+         - 6-7: Relevant with useful information
+         - 8-9: Very relevant, substantial material
+         - 10: Critical source, central to user intent
+      
+      4. Document reasoning for the relevancy score:
+         - What makes this file relevant/irrelevant?
+         - What specific content aligns with user intent?
+      
+      5. Extract and summarize the relevant material:
+         - Key concepts from the file
+         - Specific sections/snippets that matter
+         - How this content could be used in the document
+      
+      Filter and return ONLY files with relevancy score >= 6:
+      - File path
+      - Relevancy score (6-10)
+      - Reasoning for the score
+      - Summary of relevant material extracted
+      
+      Sort by relevancy score (highest first).
+      
+      If NO files score >= 6:
+      - Return warning message
+      - Include top 3 files with highest scores (even if < 6) as alternatives
+      - Suggest refinement of user intent or source specification
+    output: "relevant_files"
+    timeout: 1800  # 30 minutes - may need to read many files
+    depends_on: ["discover-source-files"]
+    on_error: "continue"  # Continue even if some files fail to read
+
+  # Stage 4: Generate hierarchical outline structure
+  - id: "generate-outline"
+    agent: "developer-expertise:zen-architect"
+    mode: "ARCHITECT"
+    prompt: |
+      User intent for the document:
+      {{user_intent}}
+      
+      Output filename: {{output_filename}}
+      
+      Relevant sources with analysis:
+      {{evaluate-relevancy.output}}
+      
+      Design a hierarchical outline structure for this document.
+      
+      Requirements:
+      1. Begin the outline with the user_intent as the top-level header/description
+      
+      2. Create a logical hierarchy of sections using markdown heading levels (H1-H6)
+      
+      3. For each section, provide:
+         ```yaml
+         title: "Section Title"
+         level: 1  # 1-6 corresponding to H1-H6
+         prompt: "Detailed prompt explaining what content to generate for this section"
+         sources:
+           - file: "/path/to/source/file"
+             reasoning: "Why this source is relevant to this section"
+             relevant_notes: "Summary of material from this source to include"
+         subsections:
+           - title: "Subsection Title"
+             level: 2
+             # ... recursive structure
+         ```
+      
+      4. Distribute the relevant sources across appropriate sections:
+         - High relevancy sources (9-10) should be prominently featured
+         - Group related sources in the same sections
+         - Don't force sources into irrelevant sections
+      
+      5. Ensure logical flow and organization:
+         - Introduction → Core concepts → Advanced topics → Conclusion
+         - Or whatever structure best fits the user intent
+      
+      6. Write clear generation prompts for each section:
+         - Explain what the section should accomplish
+         - Reference specific sources to draw from
+         - Provide style/tone guidance if relevant
+      
+      Return the complete outline as valid, well-formatted YAML.
+      Make it comprehensive and actionable for document generation.
+    output: "outline"
+    timeout: 900  # 15 minutes for outline generation
+    depends_on: ["evaluate-relevancy"]
+    on_error: "fail"  # Outline generation is critical
+
+  # Stage 5: Store all metadata and artifacts, then cleanup
+  - id: "store-metadata"
+    agent: "developer-expertise:modular-builder"
+    prompt: |
+      Store the generated artifacts in the metadata directory and cleanup temporary repositories.
+      
+      Configuration:
+      - Metadata directory: {{metadata_dir}}
+      - Output filename: {{output_filename}}
+      - Discovery data (includes temp directories): {{discover-source-files.output}}
+      
+      Tasks to complete:
+      
+      1. Create directory {{metadata_dir}}/ if it doesn't exist
+         - Handle permissions errors gracefully
+         - Return error if directory cannot be created
+      
+      2. Save the outline file:
+         - Path: {{metadata_dir}}/{{output_filename}}.outline.yaml
+         - Content: {{generate-outline.output}}
+         - Format: Valid YAML with proper indentation
+      
+      3. Save source specification copy:
+         - Path: {{metadata_dir}}/{{output_filename}}.sources.yaml
+         - Content: {{validate-source-spec.output}}
+         - This preserves the exact spec used for generation
+      
+      4. Create manifest file:
+         - Path: {{metadata_dir}}/{{output_filename}}.manifest.yaml
+         - Include:
+           * generation_timestamp: Current ISO timestamp
+           * user_intent: "{{user_intent}}"
+           * output_filename: "{{output_filename}}"
+           * sources_evaluated: (count from discovered_files)
+           * sources_selected: (count from relevant_files where score >= 6)
+           * repositories_cloned: List of URLs that were cloned
+           * repositories_local: List of local paths used
+           * outline_path: Full path to outline file
+           * sources_path: Full path to sources copy
+           * recipe_version: "1.1.0"
+      
+      5. Cleanup temporary cloned repositories:
+         - Extract list of temporary directories from discovery data
+         - Remove each temporary directory: rm -rf {temp_dir}
+         - Handle errors gracefully (warn if cleanup fails but don't fail recipe)
+         - Log which directories were removed
+      
+      Return confirmation with:
+      - All file paths created
+      - File sizes
+      - Success/failure status for each file
+      - Cleanup status (directories removed, any failures)
+      - Next steps suggestion
+    output: "metadata_paths"
+    timeout: 300
+    depends_on: ["generate-outline"]
+    on_error: "fail"  # Critical - we need to persist the results
+
+# Usage Instructions:
+#
+# Execute this recipe with:
+#   amplifier recipes execute doc-outline-generator.yaml \
+#     --context user_intent="Create a comprehensive developer guide..." \
+#     --context source_spec_file="./sources.yaml" \
+#     --context output_filename="developer-guide.md"
+#
+# Optional:
+#   --context metadata_dir=".custom-metadata"
+#
+# Source Specification Format (sources.yaml):
+# ```yaml
+# repositories:
+#   - source: "https://github.com/user/repo.git"  # Remote URL (will be cloned)
+#     mode: include
+#     patterns:
+#       - "src/**/*.py"
+#       - "docs/**/*.md"
+#   - source: "/local/path/to/repo"  # Local path (used directly)
+#     mode: ignore
+#     patterns:
+#       - "*.test.js"
+#       - "**/__tests__/**"
+# ```
+#
+# Supported source formats:
+# - Remote URLs: http://, https://, git://, or git@ patterns
+# - Local paths: Absolute or relative filesystem paths
+#
+# The recipe will:
+# 1. Validate your source specification (300s timeout)
+# 2. Discover all matching source files (900s timeout - includes git cloning)
+#    - Remote repositories are cloned to /tmp/doc-gen-{hash}/ 
+#    - Shallow clones used for efficiency (--depth 1)
+#    - Temporary clones are cleaned up automatically in Stage 5
+# 3. Evaluate relevancy of each file (1800s timeout - ~30 min)
+# 4. Generate hierarchical outline structure (900s timeout)
+# 5. Store all metadata and artifacts, cleanup temp repos (300s timeout)
+#
+# Expected total runtime: 35-50 minutes depending on number of source files and clone sizes
+#
+# Output:
+# - {metadata_dir}/{output_filename}.outline.yaml - The generated outline
+# - {metadata_dir}/{output_filename}.sources.yaml - Copy of source spec
+# - {metadata_dir}/{output_filename}.manifest.yaml - Generation metadata (includes clone info)
+#
+# Error Handling:
+# - Stage 1: Fails recipe if source spec is invalid
+# - Stage 2: Fails recipe if file discovery fails completely
+#   * Individual clone failures are reported but don't halt the recipe
+#   * Provides clear errors for network issues, invalid URLs, auth required
+# - Stage 3: Continues if some files fail to read (best effort)
+# - Stage 4: Fails recipe if outline generation fails
+# - Stage 5: Fails recipe if metadata cannot be stored
+#   * Cleanup failures are warned but don't fail the recipe
+#
+# Authentication Notes:
+# - Public repositories can be cloned without authentication
+# - Private repositories require authentication (SSH keys or credentials)
+# - If auth is required, you'll get a clear error message with instructions

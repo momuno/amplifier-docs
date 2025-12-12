@@ -1,0 +1,29 @@
+repositories:
+  - source: "https://github.com/microsoft/amplifier-core"
+    mode: include
+    patterns:
+      - "README.md"
+      - "docs/**/*.md"
+  
+  - source: "https://github.com/microsoft/amplifier-profiles"
+    mode: include
+    patterns:
+      - "README.md"
+  
+  - source: "https://github.com/microsoft/amplifier-collections"
+    mode: include
+    patterns:
+      - "README.md"
+  
+  - source: "https://github.com/microsoft/amplifier-config"
+    mode: include
+    patterns:
+      - "README.md"
+  
+  - source: "https://github.com/microsoft/amplifier-module-resolution"
+    mode: ignore
+    patterns:
+      - "tests/**"
+      - ".gitignore"
+      - "CODE_OF_CONDUCT.md"
+      - "LICENSE"

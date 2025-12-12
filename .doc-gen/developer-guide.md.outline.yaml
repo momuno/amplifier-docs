@@ -1,0 +1,434 @@
+document:
+  user_intent: "Create a comprehensive developer guide covering architecture, API usage, and best practices. Use clear examples and maintain a tutorial style."
+  output_filename: "developer-guide.md"
+  
+sections:
+  - title: "Amplifier Developer Guide"
+    level: 1
+    prompt: |
+      Create an engaging introduction that welcomes developers to the Amplifier framework.
+      Explain what Amplifier is, its core purpose (modular AI development), and why developers
+      should use it. Set expectations for the tutorial-style approach with clear examples.
+      Keep tone friendly and encouraging.
+    sources:
+      - file: "/tmp/doc-gen-085dc995/amplifier-core/README.md"
+        reasoning: "Main entry point with overview and value proposition"
+        relevant_notes: "Introduction section, 'What is Amplifier' content"
+    subsections:
+      - title: "What You'll Learn"
+        level: 2
+        prompt: "Provide a bulleted list of key learning outcomes: architecture patterns, API usage, module development, best practices, and advanced patterns."
+        sources: []
+      
+      - title: "Prerequisites"
+        level: 2
+        prompt: "List required knowledge (Python basics, CLI familiarity), tools needed, and setup instructions. Include version requirements."
+        sources:
+          - file: "/tmp/doc-gen-085dc995/amplifier-core/README.md"
+            reasoning: "Installation and setup information"
+            relevant_notes: "Getting started section"
+
+  - title: "Architecture & Design Philosophy"
+    level: 1
+    prompt: |
+      Provide a comprehensive overview of Amplifier's architecture and design principles.
+      Start with the 'why' before the 'what'. Explain the philosophy of ruthless simplicity,
+      modular design, and the 'bricks and studs' metaphor. Use clear examples and diagrams.
+    sources:
+      - file: "/tmp/doc-gen-085dc995/amplifier-core/docs/DESIGN_PHILOSOPHY.md"
+        reasoning: "Critical foundational document explaining all design decisions"
+        relevant_notes: "Linux Kernel metaphor, Bricks & Studs concept, ruthless simplicity principles, anti-patterns to avoid"
+      - file: "/tmp/doc-gen-085dc995/amplifier-core/README.md"
+        reasoning: "High-level architecture overview"
+        relevant_notes: "Architecture section, system components, data flow"
+    subsections:
+      - title: "Core Design Principles"
+        level: 2
+        prompt: |
+          Detail the fundamental design principles: ruthless simplicity, modular architecture,
+          contract-based interfaces, and the 'bricks and studs' philosophy. Explain each with
+          concrete examples.
+        sources:
+          - file: "/tmp/doc-gen-085dc995/amplifier-core/docs/DESIGN_PHILOSOPHY.md"
+            reasoning: "Complete explanation of all design principles"
+            relevant_notes: "Ruthless simplicity section, modular design patterns, decision frameworks"
+      
+      - title: "System Architecture"
+        level: 2
+        prompt: |
+          Break down the major architectural components: providers, tools, hooks, orchestrator,
+          context system, and profiles. Explain how they work together.
+        sources:
+          - file: "/tmp/doc-gen-085dc995/amplifier-core/README.md"
+            reasoning: "System architecture overview"
+            relevant_notes: "Component breakdown, interaction patterns"
+          - file: "/tmp/doc-gen-085dc995/amplifier-core/docs/contracts/README.md"
+            reasoning: "Overview of contract system"
+            relevant_notes: "Introduction to contracts and their role"
+      
+      - title: "Module Types & Contracts"
+        level: 2
+        prompt: |
+          Explain the different module types (providers, tools, hooks, contexts) and their
+          contracts. Show how contracts enable composability and interoperability.
+        sources:
+          - file: "/tmp/doc-gen-085dc995/amplifier-core/docs/contracts/PROVIDER_CONTRACT.md"
+            reasoning: "Provider contract specification"
+            relevant_notes: "Provider interface, lifecycle, capabilities"
+          - file: "/tmp/doc-gen-085dc995/amplifier-core/docs/contracts/TOOL_CONTRACT.md"
+            reasoning: "Tool contract specification"
+            relevant_notes: "Tool interface, parameter handling, execution model"
+          - file: "/tmp/doc-gen-085dc995/amplifier-core/docs/contracts/HOOK_CONTRACT.md"
+            reasoning: "Hook contract specification"
+            relevant_notes: "Hook types, lifecycle, event handling"
+          - file: "/tmp/doc-gen-085dc995/amplifier-core/docs/contracts/CONTEXT_CONTRACT.md"
+            reasoning: "Context contract specification"
+            relevant_notes: "Context interface, data access patterns"
+
+  - title: "Getting Started"
+    level: 1
+    prompt: |
+      Walk developers through their first steps with Amplifier. Include installation,
+      basic configuration, and running their first session. Use complete, runnable examples.
+    sources:
+      - file: "/tmp/doc-gen-085dc995/amplifier-core/README.md"
+        reasoning: "Getting started guide with examples"
+        relevant_notes: "Installation steps, quick start examples"
+      - file: "/tmp/doc-gen-30c6b901/amplifier-collections/README.md"
+        reasoning: "Collections system overview"
+        relevant_notes: "How to use collections, @mention syntax"
+      - file: "/tmp/doc-gen-4dc56b3b/amplifier-config/README.md"
+        reasoning: "Configuration basics"
+        relevant_notes: "Config file structure, basic settings"
+    subsections:
+      - title: "Installation & Setup"
+        level: 2
+        prompt: "Provide step-by-step installation instructions, including dependencies, environment setup, and verification steps."
+        sources:
+          - file: "/tmp/doc-gen-085dc995/amplifier-core/README.md"
+            reasoning: "Installation section"
+            relevant_notes: "pip install commands, dependency management"
+      
+      - title: "Your First Session"
+        level: 2
+        prompt: "Walk through creating and running a basic Amplifier session. Include complete working example with explanations."
+        sources:
+          - file: "/tmp/doc-gen-085dc995/amplifier-core/README.md"
+            reasoning: "Quick start examples"
+            relevant_notes: "Basic session creation, command examples"
+      
+      - title: "Configuration Basics"
+        level: 2
+        prompt: "Explain basic configuration: profiles, mount plans, and settings. Show minimal to realistic examples."
+        sources:
+          - file: "/tmp/doc-gen-20a4fe88/amplifier-profiles/README.md"
+            reasoning: "Profile system fundamentals"
+            relevant_notes: "Profile structure, inheritance, activation"
+          - file: "/tmp/doc-gen-4dc56b3b/amplifier-config/README.md"
+            reasoning: "Configuration file format and options"
+            relevant_notes: "Config schema, common settings"
+          - file: "/tmp/doc-gen-085dc995/amplifier-core/docs/specs/MOUNT_PLAN_SPECIFICATION.md"
+            reasoning: "Mount plan structure and examples"
+            relevant_notes: "Basic mount plan format, minimal examples"
+
+  - title: "Configuration & Profiles"
+    level: 1
+    prompt: |
+      Deep dive into Amplifier's configuration system: profiles, mount plans, and module resolution.
+      Explain how to structure configurations for different environments and use cases.
+    sources:
+      - file: "/tmp/doc-gen-20a4fe88/amplifier-profiles/README.md"
+        reasoning: "Complete profile system documentation"
+        relevant_notes: "Profile API, inheritance, composition patterns, examples"
+      - file: "/tmp/doc-gen-085dc995/amplifier-core/docs/specs/MOUNT_PLAN_SPECIFICATION.md"
+        reasoning: "Mount plan specification and patterns"
+        relevant_notes: "Schema, validation, advanced features, production examples"
+      - file: "/tmp/doc-gen-4dc56b3b/amplifier-config/README.md"
+        reasoning: "Configuration management"
+        relevant_notes: "Config file structure, resolution, overrides"
+      - file: "/tmp/doc-gen-1b6665d4/amplifier-module-resolution/README.md"
+        reasoning: "Module resolution system"
+        relevant_notes: "Source protocols, resolution strategies"
+    subsections:
+      - title: "Profile System"
+        level: 2
+        prompt: "Explain profile management, inheritance, and composition. Show how to create reusable profiles."
+        sources:
+          - file: "/tmp/doc-gen-20a4fe88/amplifier-profiles/README.md"
+            reasoning: "Complete profile system reference"
+            relevant_notes: "All sections - API, patterns, examples"
+      
+      - title: "Mount Plans"
+        level: 2
+        prompt: "Detail mount plan structure, validation, and best practices. Include examples from simple to complex."
+        sources:
+          - file: "/tmp/doc-gen-085dc995/amplifier-core/docs/specs/MOUNT_PLAN_SPECIFICATION.md"
+            reasoning: "Complete mount plan specification"
+            relevant_notes: "Full specification with all examples"
+      
+      - title: "Module Resolution"
+        level: 2
+        prompt: "Explain how modules are discovered and loaded. Cover source protocols, resolution strategies, and troubleshooting."
+        sources:
+          - file: "/tmp/doc-gen-1b6665d4/amplifier-module-resolution/README.md"
+            reasoning: "Module resolution system overview"
+            relevant_notes: "Resolution process, source types, troubleshooting"
+          - file: "/tmp/doc-gen-085dc995/amplifier-core/docs/MODULE_SOURCE_PROTOCOL.md"
+            reasoning: "Module source protocol specification"
+            relevant_notes: "Protocol details, implementation requirements"
+          - file: "/tmp/doc-gen-1b6665d4/amplifier-module-resolution/docs/SPECIFICATION.md"
+            reasoning: "Detailed resolution specification"
+            relevant_notes: "Technical specification, edge cases"
+
+  - title: "Developing Modules"
+    level: 1
+    prompt: |
+      Guide developers through creating their own providers, tools, hooks, and contexts.
+      Use complete working examples with explanations of each part.
+    sources:
+      - file: "/tmp/doc-gen-085dc995/amplifier-core/docs/contracts/PROVIDER_CONTRACT.md"
+        reasoning: "Provider development contract"
+        relevant_notes: "Interface requirements, implementation guide"
+      - file: "/tmp/doc-gen-085dc995/amplifier-core/docs/contracts/TOOL_CONTRACT.md"
+        reasoning: "Tool development contract"
+        relevant_notes: "Tool creation guide, parameter handling"
+      - file: "/tmp/doc-gen-085dc995/amplifier-core/docs/contracts/HOOK_CONTRACT.md"
+        reasoning: "Hook development contract"
+        relevant_notes: "Hook types, implementation patterns"
+      - file: "/tmp/doc-gen-085dc995/amplifier-core/docs/contracts/CONTEXT_CONTRACT.md"
+        reasoning: "Context development contract"
+        relevant_notes: "Context interface, data management"
+    subsections:
+      - title: "Creating Providers"
+        level: 2
+        prompt: "Walk through creating a custom provider. Include complete example with error handling and best practices."
+        sources:
+          - file: "/tmp/doc-gen-085dc995/amplifier-core/docs/contracts/PROVIDER_CONTRACT.md"
+            reasoning: "Provider contract with examples"
+            relevant_notes: "Full contract specification"
+      
+      - title: "Building Tools"
+        level: 2
+        prompt: "Show how to create tools that extend Amplifier functionality. Include parameter validation and execution patterns."
+        sources:
+          - file: "/tmp/doc-gen-085dc995/amplifier-core/docs/contracts/TOOL_CONTRACT.md"
+            reasoning: "Tool contract with implementation guide"
+            relevant_notes: "Complete tool development guide"
+      
+      - title: "Implementing Hooks"
+        level: 2
+        prompt: "Explain hook system and show how to create hooks for different events. Include all hook types with examples."
+        sources:
+          - file: "/tmp/doc-gen-085dc995/amplifier-core/docs/HOOKS_API.md"
+            reasoning: "Complete hooks API reference with patterns"
+            relevant_notes: "4 common patterns, event types, best practices"
+          - file: "/tmp/doc-gen-085dc995/amplifier-core/docs/contracts/HOOK_CONTRACT.md"
+            reasoning: "Hook contract specification"
+            relevant_notes: "Hook interface requirements"
+      
+      - title: "Creating Contexts"
+        level: 2
+        prompt: "Show how to create custom contexts for data access. Include caching, lazy loading, and invalidation patterns."
+        sources:
+          - file: "/tmp/doc-gen-085dc995/amplifier-core/docs/contracts/CONTEXT_CONTRACT.md"
+            reasoning: "Context contract and patterns"
+            relevant_notes: "Interface specification, implementation patterns"
+
+  - title: "API Reference"
+    level: 1
+    prompt: |
+      Provide comprehensive API documentation organized by functional area.
+      Focus on common use cases and provide practical examples for each API.
+    sources:
+      - file: "/tmp/doc-gen-085dc995/amplifier-core/docs/contracts/ORCHESTRATOR_CONTRACT.md"
+        reasoning: "Orchestrator API reference"
+        relevant_notes: "Session management, execution control"
+      - file: "/tmp/doc-gen-085dc995/amplifier-core/docs/specs/PROVIDER_SPECIFICATION.md"
+        reasoning: "Provider specification details"
+        relevant_notes: "Provider capabilities, interfaces"
+      - file: "/tmp/doc-gen-085dc995/amplifier-core/docs/specs/CONTRIBUTION_CHANNELS.md"
+        reasoning: "Contribution channels API"
+        relevant_notes: "Channel types, usage patterns"
+    subsections:
+      - title: "Orchestrator API"
+        level: 2
+        prompt: "Document orchestrator methods for session management, execution control, and state handling."
+        sources:
+          - file: "/tmp/doc-gen-085dc995/amplifier-core/docs/contracts/ORCHESTRATOR_CONTRACT.md"
+            reasoning: "Complete orchestrator interface"
+            relevant_notes: "All public methods and usage"
+      
+      - title: "Provider API"
+        level: 2
+        prompt: "Document provider interfaces, capabilities discovery, and invocation patterns."
+        sources:
+          - file: "/tmp/doc-gen-085dc995/amplifier-core/docs/specs/PROVIDER_SPECIFICATION.md"
+            reasoning: "Provider API details"
+            relevant_notes: "Interface specification"
+      
+      - title: "Tool & Hook APIs"
+        level: 2
+        prompt: "Document tool execution and hook registration APIs with examples."
+        sources:
+          - file: "/tmp/doc-gen-085dc995/amplifier-core/docs/HOOKS_API.md"
+            reasoning: "Hooks API complete reference"
+            relevant_notes: "Registration, event handling, patterns"
+
+  - title: "Best Practices"
+    level: 1
+    prompt: |
+      Compile actionable best practices for Amplifier development. Draw from design philosophy
+      and real examples. Make recommendations concrete with clear do's and don'ts.
+    sources:
+      - file: "/tmp/doc-gen-085dc995/amplifier-core/docs/DESIGN_PHILOSOPHY.md"
+        reasoning: "Core principles and anti-patterns"
+        relevant_notes: "Best practices section, anti-patterns, decision frameworks"
+      - file: "/tmp/doc-gen-085dc995/amplifier-core/docs/HOOKS_API.md"
+        reasoning: "Hook patterns and best practices"
+        relevant_notes: "Best practices section, common patterns"
+    subsections:
+      - title: "Module Design Patterns"
+        level: 2
+        prompt: "Explain patterns for well-designed modules: single responsibility, clear contracts, testability."
+        sources:
+          - file: "/tmp/doc-gen-085dc995/amplifier-core/docs/DESIGN_PHILOSOPHY.md"
+            reasoning: "Design philosophy and patterns"
+            relevant_notes: "Modular design section"
+      
+      - title: "Configuration Patterns"
+        level: 2
+        prompt: "Show patterns for organizing configurations, using profiles effectively, and managing complexity."
+        sources:
+          - file: "/tmp/doc-gen-20a4fe88/amplifier-profiles/README.md"
+            reasoning: "Profile patterns and best practices"
+            relevant_notes: "Patterns section, composition examples"
+          - file: "/tmp/doc-gen-085dc995/amplifier-core/docs/specs/MOUNT_PLAN_SPECIFICATION.md"
+            reasoning: "Mount plan patterns"
+            relevant_notes: "Best practices, production examples"
+      
+      - title: "Error Handling & Debugging"
+        level: 2
+        prompt: "Provide guidance on robust error handling, logging, and debugging techniques."
+        sources:
+          - file: "/tmp/doc-gen-085dc995/amplifier-core/docs/DESIGN_PHILOSOPHY.md"
+            reasoning: "Error handling philosophy"
+            relevant_notes: "Error handling section"
+      
+      - title: "Performance Optimization"
+        level: 2
+        prompt: "Cover performance considerations: lazy loading, caching, resource management."
+        sources: []
+      
+      - title: "Common Pitfalls"
+        level: 2
+        prompt: "Identify common mistakes and how to avoid them. Use a friendly, teaching tone."
+        sources:
+          - file: "/tmp/doc-gen-085dc995/amplifier-core/docs/DESIGN_PHILOSOPHY.md"
+            reasoning: "Anti-patterns section"
+            relevant_notes: "What to avoid, common mistakes"
+
+  - title: "Advanced Topics"
+    level: 1
+    prompt: |
+      Cover advanced Amplifier features and patterns for experienced developers.
+      Include session forking, custom resolution, and advanced hook patterns.
+    sources:
+      - file: "/tmp/doc-gen-085dc995/amplifier-core/docs/SESSION_FORK_SPECIFICATION.md"
+        reasoning: "Session forking advanced feature"
+        relevant_notes: "Fork mechanism, use cases, implementation"
+      - file: "/tmp/doc-gen-1b6665d4/amplifier-module-resolution/docs/USER_GUIDE.md"
+        reasoning: "Advanced module resolution"
+        relevant_notes: "Custom resolvers, advanced patterns"
+    subsections:
+      - title: "Session Forking"
+        level: 2
+        prompt: "Explain session forking: when to use it, how it works, and implementation patterns."
+        sources:
+          - file: "/tmp/doc-gen-085dc995/amplifier-core/docs/SESSION_FORK_SPECIFICATION.md"
+            reasoning: "Complete session fork specification"
+            relevant_notes: "Full specification with examples"
+      
+      - title: "Custom Module Resolution"
+        level: 2
+        prompt: "Show how to implement custom module resolvers for special source types."
+        sources:
+          - file: "/tmp/doc-gen-1b6665d4/amplifier-module-resolution/docs/USER_GUIDE.md"
+            reasoning: "User guide for custom resolution"
+            relevant_notes: "Custom resolver implementation"
+          - file: "/tmp/doc-gen-1b6665d4/amplifier-module-resolution/docs/SPECIFICATION.md"
+            reasoning: "Technical specification"
+            relevant_notes: "Extension points, custom sources"
+      
+      - title: "Advanced Hook Patterns"
+        level: 2
+        prompt: "Deep dive into advanced hook patterns: chaining, conditional execution, state management."
+        sources:
+          - file: "/tmp/doc-gen-085dc995/amplifier-core/docs/HOOKS_API.md"
+            reasoning: "Advanced hook patterns"
+            relevant_notes: "All 4 patterns, advanced usage"
+
+  - title: "Collections System"
+    level: 1
+    prompt: |
+      Explain the collections system for organizing and distributing reusable modules, contexts,
+      and documentation. Show how to create and use collections.
+    sources:
+      - file: "/tmp/doc-gen-30c6b901/amplifier-collections/README.md"
+        reasoning: "Complete collections system documentation"
+        relevant_notes: "Collection structure, @mention syntax, distribution"
+    subsections:
+      - title: "Using Collections"
+        level: 2
+        prompt: "Show how to use existing collections with @mention syntax and collection discovery."
+        sources:
+          - file: "/tmp/doc-gen-30c6b901/amplifier-collections/README.md"
+            reasoning: "Collections usage guide"
+            relevant_notes: "Usage section, @mention examples"
+      
+      - title: "Creating Collections"
+        level: 2
+        prompt: "Guide developers through creating their own collections for sharing modules."
+        sources:
+          - file: "/tmp/doc-gen-30c6b901/amplifier-collections/README.md"
+            reasoning: "Collection authoring guide"
+            relevant_notes: "Creation section, structure requirements"
+
+  - title: "Troubleshooting"
+    level: 1
+    prompt: |
+      Provide troubleshooting guide covering common issues, debugging techniques, and resolution steps.
+      Format as Q&A style for easy scanning.
+    sources:
+      - file: "/tmp/doc-gen-1b6665d4/amplifier-module-resolution/docs/USER_GUIDE.md"
+        reasoning: "Module resolution troubleshooting"
+        relevant_notes: "Troubleshooting section"
+    subsections:
+      - title: "Common Issues & Solutions"
+        level: 2
+        prompt: "List frequent problems with symptoms, causes, and step-by-step solutions."
+        sources:
+          - file: "/tmp/doc-gen-1b6665d4/amplifier-module-resolution/docs/USER_GUIDE.md"
+            reasoning: "Common resolution issues"
+            relevant_notes: "Troubleshooting section"
+      
+      - title: "Debugging Techniques"
+        level: 2
+        prompt: "Explain debugging tools, logging configuration, and diagnostic commands."
+        sources: []
+
+  - title: "Resources & Next Steps"
+    level: 1
+    prompt: |
+      Provide links to additional resources, related documentation, community channels,
+      and next steps for continued learning.
+    sources: []
+    subsections:
+      - title: "Related Documentation"
+        level: 2
+        prompt: "Link to API specs, architecture docs, and advanced guides."
+        sources: []
+      
+      - title: "Community & Support"
+        level: 2
+        prompt: "Provide information on getting help, contributing, and engaging with the community."
+        sources: []
