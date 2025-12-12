@@ -100,7 +100,7 @@ class TestOutlineGenerator:
         # ARRANGE
         mock_client = Mock()
         mock_response = LLMResponse(
-            content='{"title": "Test", "sections": [{"heading": "Section", "sources": [{"file": "test.py"}]}]}',
+            content='{"title": "Test", "sections": [{"heading": "Section", "prompt": "Write about this", "sources": [{"file": "test.py"}]}]}',
             tokens_used=100,
             model="gpt-4",
             duration_seconds=1.0
@@ -146,7 +146,7 @@ class TestOutlineGenerator:
         # ARRANGE
         mock_client = Mock()
         generator = OutlineGenerator(mock_client)
-        valid_json = '{"title": "Test Title", "sections": [{"heading": "Section 1"}]}'
+        valid_json = '{"title": "Test Title", "sections": [{"heading": "Section 1", "prompt": "Write about section 1"}]}'
 
         # ACT
         outline = generator._parse_and_validate(valid_json)
@@ -155,6 +155,7 @@ class TestOutlineGenerator:
         assert outline["title"] == "Test Title"
         assert len(outline["sections"]) == 1
         assert outline["sections"][0]["heading"] == "Section 1"
+        assert outline["sections"][0]["prompt"] == "Write about section 1"
 
     def test_parse_and_validate_raises_error_on_invalid_json(self):
         """_parse_and_validate should raise error on invalid JSON."""
@@ -205,11 +206,22 @@ class TestOutlineGenerator:
         # ARRANGE
         mock_client = Mock()
         generator = OutlineGenerator(mock_client)
-        missing_heading = '{"title": "Test", "sections": [{"topics": ["Topic 1"]}]}'
+        missing_heading = '{"title": "Test", "sections": [{"prompt": "Write something", "topics": ["Topic 1"]}]}'
 
         # ACT & ASSERT
         with pytest.raises(OutlineValidationError, match="missing 'heading'"):
             generator._parse_and_validate(missing_heading)
+
+    def test_parse_and_validate_raises_error_on_section_missing_prompt(self):
+        """_parse_and_validate should raise error if section missing prompt."""
+        # ARRANGE
+        mock_client = Mock()
+        generator = OutlineGenerator(mock_client)
+        missing_prompt = '{"title": "Test", "sections": [{"heading": "Section 1", "topics": ["Topic 1"]}]}'
+
+        # ACT & ASSERT
+        with pytest.raises(OutlineValidationError, match="missing 'prompt'"):
+            generator._parse_and_validate(missing_prompt)
 
     def test_embed_commit_hashes_adds_top_level_hashes(self):
         """_embed_commit_hashes should add top-level commit hash mapping."""

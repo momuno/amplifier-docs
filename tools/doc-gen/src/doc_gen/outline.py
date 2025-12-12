@@ -73,7 +73,8 @@ Your outline should:
 2. Break down into logical sections
 3. Note important implementation details
 4. Reference specific source files for each topic
-5. Be structured for a technical audience
+5. Include a clear prompt for each section that instructs what content to generate
+6. Be structured for a technical audience
 
 Return your response as valid JSON matching the provided schema."""
 
@@ -111,6 +112,7 @@ Generate a JSON outline with this structure:
   "sections": [
     {
       "heading": "Section name",
+      "prompt": "Clear instructions for what content to generate in this section. Be specific about what to cover, what angle to take, and what the reader should learn.",
       "topics": ["Topic 1", "Topic 2"],
       "sources": [
         {
@@ -125,6 +127,7 @@ Generate a JSON outline with this structure:
 
 Focus on:
 - Clear section organization
+- Specific "prompt" instructions for each section (this guides content generation)
 - Specific line ranges where relevant
 - Notes on what each source contributes
 - Logical flow from overview to details
@@ -180,6 +183,8 @@ Focus on:
         for i, section in enumerate(outline["sections"]):
             if "heading" not in section:
                 raise OutlineValidationError(f"Section {i} missing 'heading'")
+            if "prompt" not in section:
+                raise OutlineValidationError(f"Section {i} missing 'prompt'")
 
         return outline
 
