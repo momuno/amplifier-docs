@@ -6,6 +6,9 @@ import click
 
 from .config import Config
 from .metadata import MetadataManager
+from .llm_client import OpenAIClient, LLMError
+from .outline import OutlineGenerator
+from .repos import RepoManager
 
 
 @click.group()
@@ -58,7 +61,7 @@ def init(doc_path: str):
 @click.argument("doc-path", type=click.Path())
 @click.pass_context
 def generate_outline(ctx, doc_path: str):
-    """Generate outline from source files (Sprint 2).
+    """Generate outline from source files.
     
     Analyzes source repositories and generates a structured outline
     for the document using AI.
@@ -66,12 +69,84 @@ def generate_outline(ctx, doc_path: str):
     Example:
       doc-gen generate-outline docs/modules/providers/openai.md
     """
-    click.echo("Coming in Sprint 2: Outline generation")
-    click.echo("This command will:")
-    click.echo("  - Clone source repositories")
-    click.echo("  - Extract relevant files")
-    click.echo("  - Generate outline with LLM")
-    click.echo("  - Save to outline.json")
+    config = ctx.obj["config"]
+    metadata = MetadataManager(doc_path)
+    
+    try:
+        # 1. Load sources
+        click.echo(f"Loading sources for {doc_path}...")
+        sources_config = metadata.read_sources()
+        
+        # 2. Clone repository
+        click.echo("Cloning repository...")
+        with RepoManager() as repo_mgr:
+            repo_url = sources_config["repositories"][0]["url"]
+            repo_path = repo_mgr.clone_repo(repo_url)
+            
+            # 3. List and read source files
+            click.echo("Reading source files...")
+            include_patterns = sources_config["repositories"][0]["include"]
+            file_paths = repo_mgr.list_files(repo_path, include_patterns)
+            
+            source_files = {}
+            commit_hashes = {}
+            
+            for file_path in file_paths:
+                full_path = repo_path / file_path
+                try:
+                    source_files[str(file_path)] = full_path.read_text()
+                    commit_hashes[str(file_path)] = repo_mgr.get_file_commit_hash(
+                        repo_path, str(file_path)
+                    )
+                except Exception:
+                    # Skip files that can't be read (binary, etc.)
+                    pass
+            
+            click.echo(f"✓ Read {len(source_files)} files")
+            
+            # 4. Generate outline
+            click.echo("Generating outline with LLM...")
+            llm_client = OpenAIClient(
+                api_key=config.llm_api_key,
+                model=config.llm_model,
+                timeout=config.llm_timeout,
+            )
+            generator = OutlineGenerator(llm_client)
+            
+            purpose = sources_config["metadata"]["purpose"]
+            outline = generator.generate_outline(
+                source_files, commit_hashes, purpose
+            )
+            
+            # 5. Save outline
+            metadata.save_outline(outline)
+            
+            # 6. Report success
+            click.echo(f"\n✓ Outline generated successfully!")
+            click.echo(f"✓ Saved to: {metadata.outline_path}")
+            click.echo(f"\nMetadata:")
+            click.echo(f"  Model: {outline['_metadata']['model']}")
+            click.echo(f"  Tokens: {outline['_metadata']['tokens_used']}")
+            click.echo(f"  Duration: {outline['_metadata']['duration_seconds']:.1f}s")
+            click.echo(f"\nNext steps:")
+            click.echo(f"  1. Review outline: cat {metadata.outline_path}")
+            click.echo(f"  2. Generate document: doc-gen generate-doc {doc_path}")
+            
+    except FileNotFoundError as e:
+        click.echo(f"✗ Error: {e}", err=True)
+        ctx.exit(1)
+    except LLMError as e:
+        click.echo(f"✗ LLM Error: {e}", err=True)
+        click.echo(f"\nTroubleshooting:")
+        click.echo(f"  - Check API key is set correctly")
+        click.echo(f"  - Try again (may be transient)")
+        click.echo(f"  - Check LLM provider status")
+        ctx.exit(1)
+    except Exception as e:
+        click.echo(f"✗ Unexpected error: {e}", err=True)
+        if ctx.obj.get("debug"):
+            raise
+        ctx.exit(2)
 
 
 @cli.command()
