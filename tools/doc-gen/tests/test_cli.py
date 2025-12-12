@@ -82,17 +82,14 @@ class TestCLI:
         expected_path = Path(".doc-gen/metadata/docs/deep/nested/path/test/sources.yaml")
         assert expected_path.exists()
 
-    def test_generate_outline_shows_coming_soon(self, runner, tmp_path, monkeypatch):
-        """generate-outline command should show Sprint 2 message."""
-        # ARRANGE
-        monkeypatch.chdir(tmp_path)
-
+    def test_generate_outline_command_implemented(self, runner):
+        """generate-outline command should be implemented (Sprint 2 complete)."""
         # ACT
-        result = runner.invoke(cli, ["generate-outline", "docs/test.md"])
+        result = runner.invoke(cli, ["generate-outline", "--help"])
 
         # ASSERT
         assert result.exit_code == 0
-        assert "Sprint 2" in result.output
+        assert "Generate outline from source files" in result.output
 
     def test_generate_doc_shows_coming_soon(self, runner, tmp_path, monkeypatch):
         """generate-doc command should show Sprint 3 message."""
