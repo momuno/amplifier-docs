@@ -6,7 +6,7 @@ import click
 
 from .config import Config
 from .metadata import MetadataManager
-from .llm_client import OpenAIClient, LLMError
+from .llm_client import OpenAIClient, AnthropicClient, LLMError
 from .outline import OutlineGenerator
 from .repos import RepoManager
 
@@ -106,11 +106,20 @@ def generate_outline(ctx, doc_path: str):
             
             # 4. Generate outline
             click.echo("Generating outline with LLM...")
-            llm_client = OpenAIClient(
-                api_key=config.llm_api_key,
-                model=config.llm_model,
-                timeout=config.llm_timeout,
-            )
+            
+            # Select LLM client based on provider
+            if config.llm_provider == "anthropic":
+                llm_client = AnthropicClient(
+                    api_key=config.llm_api_key,
+                    model=config.llm_model,
+                    timeout=config.llm_timeout,
+                )
+            else:  # Default to OpenAI
+                llm_client = OpenAIClient(
+                    api_key=config.llm_api_key,
+                    model=config.llm_model,
+                    timeout=config.llm_timeout,
+                )
             generator = OutlineGenerator(llm_client)
             
             purpose = sources_config["metadata"]["purpose"]
