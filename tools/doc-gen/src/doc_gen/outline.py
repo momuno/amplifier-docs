@@ -147,6 +147,16 @@ Focus on:
         Raises:
             OutlineValidationError: If JSON is invalid or missing required fields
         """
+        # Strip markdown code fences if present (common LLM behavior)
+        json_string = json_string.strip()
+        if json_string.startswith("```json"):
+            json_string = json_string[7:]  # Remove ```json
+        elif json_string.startswith("```"):
+            json_string = json_string[3:]  # Remove ```
+        if json_string.endswith("```"):
+            json_string = json_string[:-3]  # Remove trailing ```
+        json_string = json_string.strip()
+        
         try:
             outline = json.loads(json_string)
         except json.JSONDecodeError as e:
