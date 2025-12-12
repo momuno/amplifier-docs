@@ -177,7 +177,7 @@ class AnthropicClient(LLMClient):
         api_key: str,
         model: str = "claude-3-opus-20240229",
         timeout: int = 60,
-        max_tokens: int = 4096,
+        max_tokens: int = 16384,
     ):
         """Initialize Anthropic client.
 
@@ -185,7 +185,7 @@ class AnthropicClient(LLMClient):
             api_key: Anthropic API key
             model: Model to use (claude-3-opus, claude-3-sonnet, etc.)
             timeout: Request timeout in seconds
-            max_tokens: Maximum tokens to generate (required by Anthropic)
+            max_tokens: Maximum tokens to generate (required by Anthropic, max 16384 for Claude 4/Sonnet 4)
         """
         self.client = Anthropic(api_key=api_key)
         self.model = model
