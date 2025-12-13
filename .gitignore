@@ -13,3 +13,11 @@ __pycache__/
 
 # Debug logs
 .doc-gen/debug/
+
+# Test coverage reports
+*.coverage
+.coverage
+htmlcov/
+
+# Generated document staging area
+.doc-gen/metadata/docs/*/staging/
