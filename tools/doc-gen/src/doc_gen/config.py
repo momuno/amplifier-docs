@@ -16,7 +16,7 @@ class Config:
     llm_provider: str = "anthropic"  # anthropic, openai
     llm_model: str = "claude-sonnet-4-5-20250929"  # claude-sonnet-4-5-20250929 (recommended), claude-3-7-sonnet-20250219
     llm_api_key: Optional[str] = None
-    llm_timeout: int = 180  # seconds (3 minutes - adequate for larger repos)
+    llm_timeout: int = 300  # seconds (5 minutes - adequate for document generation from large repos)
 
     # Repository Configuration
     temp_dir: Optional[Path] = None  # None = use system temp
