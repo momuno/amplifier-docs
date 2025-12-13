@@ -13,8 +13,9 @@ from .repos import RepoManager
 
 
 @click.group()
+@click.option('--debug', is_flag=True, help='Show detailed debug information (prompts and responses)')
 @click.pass_context
-def cli(ctx):
+def cli(ctx, debug: bool):
     """Multi-repository documentation generation tool.
     
     Generates and maintains documentation from multiple source repositories
@@ -22,6 +23,7 @@ def cli(ctx):
     """
     # Load config and store in context
     ctx.ensure_object(dict)
+    ctx.obj["debug"] = debug
     
     try:
         # Try to load config
@@ -121,6 +123,10 @@ def generate_outline(ctx, doc_path: str):
                     model=config.llm_model,
                     timeout=config.llm_timeout,
                 )
+            
+            # Enable debug mode if requested
+            llm_client.set_debug(ctx.obj.get("debug", False))
+            
             generator = OutlineGenerator(llm_client)
             
             purpose = sources_config["metadata"]["purpose"]
@@ -221,6 +227,9 @@ def generate_doc(ctx, doc_path: str):
                     model=config.llm_model,
                     timeout=config.llm_timeout,
                 )
+            
+            # Enable debug mode if requested
+            llm_client.set_debug(ctx.obj.get("debug", False))
             
             generator = DocumentGenerator(llm_client)
             

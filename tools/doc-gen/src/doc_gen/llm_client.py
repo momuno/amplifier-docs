@@ -5,6 +5,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Optional
 
+import click
 from openai import OpenAI
 from anthropic import Anthropic
 
@@ -21,6 +22,40 @@ class LLMResponse:
 
 class LLMClient(ABC):
     """Abstract base class for LLM providers."""
+
+    def __init__(self):
+        """Initialize LLM client."""
+        self.debug = False
+
+    def set_debug(self, debug: bool):
+        """Enable/disable debug logging.
+
+        Args:
+            debug: If True, log prompts and responses
+        """
+        self.debug = debug
+
+    def _log_debug(self, title: str, content: str, max_length: int = 2000):
+        """Log debug information if debug mode is enabled.
+
+        Args:
+            title: Section title
+            content: Content to log
+            max_length: Maximum content length to display (default 2000 chars)
+        """
+        if not self.debug:
+            return
+
+        click.echo(f"\n{'=' * 80}", err=True)
+        click.echo(f"DEBUG: {title}", err=True)
+        click.echo(f"{'=' * 80}", err=True)
+        
+        if len(content) > max_length:
+            click.echo(f"{content[:max_length]}\n... (truncated, {len(content)} total chars)", err=True)
+        else:
+            click.echo(content, err=True)
+        
+        click.echo(f"{'=' * 80}\n", err=True)
 
     @abstractmethod
     def generate(
@@ -60,6 +95,7 @@ class OpenAIClient(LLMClient):
             model: Model to use (gpt-4, gpt-3.5-turbo, etc.)
             timeout: Request timeout in seconds
         """
+        super().__init__()
         self.client = OpenAI(api_key=api_key)
         self.model = model
         self.timeout = timeout
@@ -92,6 +128,12 @@ class OpenAIClient(LLMClient):
             messages.append({"role": "system", "content": system_prompt})
         messages.append({"role": "user", "content": prompt})
 
+        # Debug logging: Show prompts being sent
+        if self.debug:
+            if system_prompt:
+                self._log_debug("SYSTEM PROMPT", system_prompt)
+            self._log_debug("USER PROMPT", prompt)
+
         start_time = time.time()
 
         try:
@@ -108,9 +150,16 @@ class OpenAIClient(LLMClient):
             response = self.client.chat.completions.create(**kwargs)
 
             duration = time.time() - start_time
+            
+            content = response.choices[0].message.content
+
+            # Debug logging: Show response received
+            if self.debug:
+                self._log_debug("LLM RESPONSE", content)
+                self._log_debug("METADATA", f"Model: {response.model}\nTokens: {response.usage.total_tokens}\nDuration: {duration:.1f}s")
 
             return LLMResponse(
-                content=response.choices[0].message.content,
+                content=content,
                 tokens_used=response.usage.total_tokens,
                 model=response.model,
                 duration_seconds=duration,
@@ -187,6 +236,7 @@ class AnthropicClient(LLMClient):
             timeout: Request timeout in seconds
             max_tokens: Maximum tokens to generate (required by Anthropic, max 16384 for Claude 4/Sonnet 4)
         """
+        super().__init__()
         self.client = Anthropic(api_key=api_key)
         self.model = model
         self.timeout = timeout
@@ -227,6 +277,12 @@ class AnthropicClient(LLMClient):
         elif json_mode:
             system = "Return your response as valid JSON only."
 
+        # Debug logging: Show prompts being sent
+        if self.debug:
+            if system:
+                self._log_debug("SYSTEM PROMPT", system)
+            self._log_debug("USER PROMPT", prompt)
+
         start_time = time.time()
 
         try:
@@ -247,6 +303,11 @@ class AnthropicClient(LLMClient):
 
             # Extract text from content blocks
             content = response.content[0].text
+            
+            # Debug logging: Show response received
+            if self.debug:
+                self._log_debug("LLM RESPONSE", content)
+                self._log_debug("METADATA", f"Model: {response.model}\nTokens In: {response.usage.input_tokens}\nTokens Out: {response.usage.output_tokens}\nDuration: {duration:.1f}s")
 
             # Calculate total tokens (input + output)
             total_tokens = response.usage.input_tokens + response.usage.output_tokens
