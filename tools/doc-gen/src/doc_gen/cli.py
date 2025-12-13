@@ -172,36 +172,47 @@ def generate_outline(ctx, doc_path: str):
     metadata = MetadataManager(doc_path)
     
     try:
-        # 1. Load sources
+        # 1. Load and parse sources
         click.echo(f"Loading sources for {doc_path}...")
+        source_specs = SourceParser.parse_sources_yaml(metadata.sources_path)
         sources_config = metadata.read_sources()
+        click.echo(f"✓ Found {len(source_specs)} repository(ies)")
         
-        # 2. Clone repository
-        click.echo("Cloning repository...")
+        # 2. Clone repositories and read source files
+        click.echo("Cloning repositories...")
+        source_files = {}
+        commit_hashes = {}
+        
         with RepoManager() as repo_mgr:
-            repo_url = sources_config["repositories"][0]["url"]
-            repo_path = repo_mgr.clone_repo(repo_url)
+            for source_spec in source_specs:
+                click.echo(f"  - {source_spec.repo_name}...")
+                repo_path = repo_mgr.clone_repo(source_spec.url)
+                
+                # List all files in repo
+                all_files = list(repo_path.rglob("*"))
+                all_files = [f for f in all_files if f.is_file()]
+                
+                # Filter by patterns
+                for file_path in all_files:
+                    relative_path = file_path.relative_to(repo_path)
+                    if source_spec.matches_file(str(relative_path)):
+                        try:
+                            # Read file content
+                            content = file_path.read_text()
+                            # Use repo-prefixed key for multi-repo
+                            key = f"{source_spec.repo_name}/{relative_path}"
+                            source_files[key] = content
+                            
+                            # Get commit hash
+                            commit_hash = repo_mgr.get_file_commit_hash(
+                                repo_path, str(relative_path)
+                            )
+                            commit_hashes[key] = commit_hash
+                        except Exception:
+                            # Skip files that can't be read (binary, etc.)
+                            pass
             
-            # 3. List and read source files
-            click.echo("Reading source files...")
-            include_patterns = sources_config["repositories"][0]["include"]
-            file_paths = repo_mgr.list_files(repo_path, include_patterns)
-            
-            source_files = {}
-            commit_hashes = {}
-            
-            for file_path in file_paths:
-                full_path = repo_path / file_path
-                try:
-                    source_files[str(file_path)] = full_path.read_text()
-                    commit_hashes[str(file_path)] = repo_mgr.get_file_commit_hash(
-                        repo_path, str(file_path)
-                    )
-                except Exception:
-                    # Skip files that can't be read (binary, etc.)
-                    pass
-            
-            click.echo(f"✓ Read {len(source_files)} files")
+            click.echo(f"✓ Read {len(source_files)} files from {len(source_specs)} repo(s)")
             
             # 4. Generate outline
             click.echo("Generating outline with LLM...")
@@ -281,29 +292,43 @@ def generate_doc(ctx, doc_path: str):
         click.echo(f"Loading outline for {doc_path}...")
         outline = metadata.read_outline()
         
-        # 2. Load sources config
+        # 2. Load and parse sources
+        source_specs = SourceParser.parse_sources_yaml(metadata.sources_path)
         sources_config = metadata.read_sources()
         
-        # 3. Clone repository and read files mentioned in outline
-        click.echo("Cloning repository...")
+        # 3. Extract files mentioned in outline
+        generator_temp = DocumentGenerator(None)
+        mentioned_files = generator_temp._extract_mentioned_files(outline)
+        
+        # 4. Clone repositories and read mentioned files
+        click.echo(f"Cloning {len(source_specs)} repository(ies)...")
+        source_files = {}
+        
         with RepoManager() as repo_mgr:
-            repo_url = sources_config["repositories"][0]["url"]
-            repo_path = repo_mgr.clone_repo(repo_url)
-            
-            # Extract files mentioned in outline
-            click.echo("Reading source files mentioned in outline...")
-            generator_temp = DocumentGenerator(None)
-            mentioned_files = generator_temp._extract_mentioned_files(outline)
-            
-            source_files = {}
-            for file_path in mentioned_files:
-                full_path = repo_path / file_path
-                if full_path.exists():
-                    try:
-                        source_files[file_path] = full_path.read_text()
-                    except Exception:
-                        # Skip files that can't be read
-                        pass
+            for source_spec in source_specs:
+                click.echo(f"  - {source_spec.repo_name}...")
+                repo_path = repo_mgr.clone_repo(source_spec.url)
+                
+                # Read files mentioned in outline that match this repo
+                for mentioned_file in mentioned_files:
+                    # Handle both single-repo format (file.py) and multi-repo format (repo/file.py)
+                    if "/" in mentioned_file and mentioned_file.startswith(source_spec.repo_name + "/"):
+                        # Multi-repo format: repo/file.py
+                        relative_path = mentioned_file[len(source_spec.repo_name) + 1:]
+                    elif "/" not in mentioned_file or not any(mentioned_file.startswith(spec.repo_name + "/") for spec in source_specs):
+                        # Single-repo format or unqualified path
+                        relative_path = mentioned_file
+                    else:
+                        # This file belongs to a different repo
+                        continue
+                    
+                    full_path = repo_path / relative_path
+                    if full_path.exists():
+                        try:
+                            source_files[mentioned_file] = full_path.read_text()
+                        except Exception:
+                            # Skip files that can't be read
+                            pass
             
             click.echo(f"✓ Read {len(source_files)} source files")
             
