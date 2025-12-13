@@ -8,6 +8,7 @@ from .config import Config
 from .metadata import MetadataManager
 from .llm_client import OpenAIClient, AnthropicClient, LLMError
 from .outline import OutlineGenerator
+from .generation import DocumentGenerator, DocumentValidationError
 from .repos import RepoManager
 
 
@@ -160,20 +161,108 @@ def generate_outline(ctx, doc_path: str):
 
 @cli.command()
 @click.argument("doc-path", type=click.Path())
-def generate_doc(doc_path: str):
-    """Generate document from outline (Sprint 3).
+@click.pass_context
+def generate_doc(ctx, doc_path: str):
+    """Generate markdown document from outline.
     
-    Generates the full document content from the outline
-    using AI.
+    Requires outline to exist (run: doc-gen generate-outline <doc-path>)
+    Document is saved to staging directory for review.
     
     Example:
       doc-gen generate-doc docs/modules/providers/openai.md
     """
-    click.echo("Coming in Sprint 3: Document generation")
-    click.echo("This command will:")
-    click.echo("  - Load outline.json")
-    click.echo("  - Generate document sections with LLM")
-    click.echo("  - Save to staging directory")
+    config = ctx.obj["config"]
+    metadata = MetadataManager(doc_path)
+    
+    try:
+        # 1. Load outline
+        click.echo(f"Loading outline for {doc_path}...")
+        outline = metadata.read_outline()
+        
+        # 2. Load sources config
+        sources_config = metadata.read_sources()
+        
+        # 3. Clone repository and read files mentioned in outline
+        click.echo("Cloning repository...")
+        with RepoManager() as repo_mgr:
+            repo_url = sources_config["repositories"][0]["url"]
+            repo_path = repo_mgr.clone_repo(repo_url)
+            
+            # Extract files mentioned in outline
+            click.echo("Reading source files mentioned in outline...")
+            generator_temp = DocumentGenerator(None)
+            mentioned_files = generator_temp._extract_mentioned_files(outline)
+            
+            source_files = {}
+            for file_path in mentioned_files:
+                full_path = repo_path / file_path
+                if full_path.exists():
+                    try:
+                        source_files[file_path] = full_path.read_text()
+                    except Exception:
+                        # Skip files that can't be read
+                        pass
+            
+            click.echo(f"✓ Read {len(source_files)} source files")
+            
+            # 4. Generate document
+            click.echo("Generating document with LLM...")
+            
+            # Select LLM client based on provider
+            if config.llm_provider == "anthropic":
+                llm_client = AnthropicClient(
+                    api_key=config.llm_api_key,
+                    model=config.llm_model,
+                    timeout=config.llm_timeout,
+                )
+            else:  # Default to OpenAI
+                llm_client = OpenAIClient(
+                    api_key=config.llm_api_key,
+                    model=config.llm_model,
+                    timeout=config.llm_timeout,
+                )
+            
+            generator = DocumentGenerator(llm_client)
+            
+            doc_purpose = sources_config["metadata"]["purpose"]
+            markdown = generator.generate_document(
+                outline, source_files, doc_purpose
+            )
+            
+            # 5. Save to staging
+            staging_path = metadata.get_staging_path()
+            staging_path.write_text(markdown)
+            
+            # 6. Report success
+            click.echo(f"\n✓ Document generated successfully!")
+            click.echo(f"✓ Saved to: {staging_path}")
+            click.echo(f"\nDocument info:")
+            click.echo(f"  Length: {len(markdown)} characters")
+            click.echo(f"  Lines: {len(markdown.splitlines())}")
+            click.echo(f"\nNext steps:")
+            click.echo(f"  1. Review document: cat {staging_path}")
+            click.echo(f"  2. If satisfied, promote to live (Sprint 5)")
+            click.echo(f"  3. Or regenerate: doc-gen generate-doc {doc_path}")
+            
+    except FileNotFoundError as e:
+        click.echo(f"✗ Error: {e}", err=True)
+        ctx.exit(1)
+    except LLMError as e:
+        click.echo(f"✗ LLM Error: {e}", err=True)
+        click.echo(f"\nTroubleshooting:")
+        click.echo(f"  - Check API key is set correctly")
+        click.echo(f"  - Try again (may be transient)")
+        click.echo(f"  - Check LLM provider status")
+        ctx.exit(1)
+    except DocumentValidationError as e:
+        click.echo(f"✗ Validation Error: {e}", err=True)
+        click.echo(f"\nTry regenerating - LLMs are non-deterministic.")
+        ctx.exit(1)
+    except Exception as e:
+        click.echo(f"✗ Unexpected error: {e}", err=True)
+        if ctx.obj.get("debug"):
+            raise
+        ctx.exit(2)
 
 
 if __name__ == "__main__":
