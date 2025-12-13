@@ -3,6 +3,8 @@
 import time
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
+from datetime import datetime
+from pathlib import Path
 from typing import Optional
 
 import click
@@ -26,36 +28,51 @@ class LLMClient(ABC):
     def __init__(self):
         """Initialize LLM client."""
         self.debug = False
+        self.debug_file = None
 
-    def set_debug(self, debug: bool):
+    def set_debug(self, debug: bool, command_name: str = "unknown"):
         """Enable/disable debug logging.
 
         Args:
-            debug: If True, log prompts and responses
+            debug: If True, log prompts and responses to file
+            command_name: Name of command being run (for log file naming)
         """
         self.debug = debug
+        
+        if debug:
+            # Create debug directory and log file
+            debug_dir = Path(".doc-gen/debug")
+            debug_dir.mkdir(parents=True, exist_ok=True)
+            
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            log_filename = f"{command_name}_{timestamp}.log"
+            self.debug_file = debug_dir / log_filename
+            
+            # Write header to log file
+            with open(self.debug_file, "w") as f:
+                f.write(f"{'=' * 80}\n")
+                f.write(f"DEBUG LOG: {command_name}\n")
+                f.write(f"Timestamp: {datetime.now().isoformat()}\n")
+                f.write(f"{'=' * 80}\n\n")
+            
+            click.echo(f"Debug mode enabled. Logging to: {self.debug_file}", err=True)
 
-    def _log_debug(self, title: str, content: str, max_length: int = 2000):
-        """Log debug information if debug mode is enabled.
+    def _log_debug(self, title: str, content: str):
+        """Log debug information to file if debug mode is enabled.
 
         Args:
             title: Section title
             content: Content to log
-            max_length: Maximum content length to display (default 2000 chars)
         """
-        if not self.debug:
+        if not self.debug or not self.debug_file:
             return
 
-        click.echo(f"\n{'=' * 80}", err=True)
-        click.echo(f"DEBUG: {title}", err=True)
-        click.echo(f"{'=' * 80}", err=True)
-        
-        if len(content) > max_length:
-            click.echo(f"{content[:max_length]}\n... (truncated, {len(content)} total chars)", err=True)
-        else:
-            click.echo(content, err=True)
-        
-        click.echo(f"{'=' * 80}\n", err=True)
+        with open(self.debug_file, "a") as f:
+            f.write(f"\n{'=' * 80}\n")
+            f.write(f"{title}\n")
+            f.write(f"{'=' * 80}\n")
+            f.write(f"{content}\n")
+            f.write(f"{'=' * 80}\n\n")
 
     @abstractmethod
     def generate(

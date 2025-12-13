@@ -125,7 +125,7 @@ def generate_outline(ctx, doc_path: str):
                 )
             
             # Enable debug mode if requested
-            llm_client.set_debug(ctx.obj.get("debug", False))
+            llm_client.set_debug(ctx.obj.get("debug", False), command_name="generate-outline")
             
             generator = OutlineGenerator(llm_client)
             
@@ -229,7 +229,7 @@ def generate_doc(ctx, doc_path: str):
                 )
             
             # Enable debug mode if requested
-            llm_client.set_debug(ctx.obj.get("debug", False))
+            llm_client.set_debug(ctx.obj.get("debug", False), command_name="generate-doc")
             
             generator = DocumentGenerator(llm_client)
             

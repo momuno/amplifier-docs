@@ -10,3 +10,6 @@ site/
 # Python cache
 __pycache__/
 *.py[cod]
+
+# Debug logs
+.doc-gen/debug/
