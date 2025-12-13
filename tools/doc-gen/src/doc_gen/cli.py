@@ -10,6 +10,8 @@ from .llm_client import OpenAIClient, AnthropicClient, LLMError
 from .outline import OutlineGenerator
 from .generation import DocumentGenerator, DocumentValidationError
 from .repos import RepoManager
+from .sources import SourceParser, SourceSpecError
+from .validation import SourceValidator, ValidationReport
 
 
 @click.group()
@@ -57,7 +59,101 @@ def init(doc_path: str):
     click.echo(f"✓ Edit: {metadata.sources_path}")
     click.echo(f"\nNext steps:")
     click.echo(f"  1. Edit sources.yaml to define repositories")
-    click.echo(f"  2. Run: doc-gen generate-outline {doc_path}")
+    click.echo(f"  2. Validate: doc-gen validate-sources {doc_path}")
+    click.echo(f"  3. Generate: doc-gen generate-outline {doc_path}")
+
+
+@cli.command()
+@click.argument("doc-path", type=click.Path())
+@click.pass_context
+def validate_sources(ctx, doc_path: str):
+    """Validate source specifications before generation.
+    
+    Clones repositories, matches patterns, shows what files will be included.
+    Use this before generate-outline to catch errors early.
+    
+    Example:
+      doc-gen validate-sources docs/modules/providers/openai.md
+    """
+    metadata = MetadataManager(doc_path)
+    
+    try:
+        # Load sources
+        click.echo(f"Loading sources for {doc_path}...")
+        
+        # Parse source specs
+        source_specs = SourceParser.parse_sources_yaml(metadata.sources_path)
+        click.echo(f"✓ Found {len(source_specs)} repository(ies)\n")
+        
+        # Validate
+        click.echo("Validating repositories...\n")
+        
+        with RepoManager() as repo_mgr:
+            validator = SourceValidator(repo_mgr)
+            report = validator.validate_sources(source_specs)
+            
+            # Display results
+            _display_validation_report(report)
+            
+            # Exit with appropriate code
+            if report.is_valid():
+                click.echo("\n✓ All sources valid!")
+                click.echo(f"\nNext steps:")
+                click.echo(f"  doc-gen generate-outline {doc_path}")
+                ctx.exit(0)
+            else:
+                click.echo("\n✗ Validation failed. Fix errors and try again.")
+                ctx.exit(1)
+                
+    except SourceSpecError as e:
+        click.echo(f"✗ Source specification error: {e}", err=True)
+        ctx.exit(1)
+    except FileNotFoundError as e:
+        click.echo(f"✗ Error: {e}", err=True)
+        ctx.exit(1)
+    except Exception as e:
+        click.echo(f"✗ Unexpected error: {e}", err=True)
+        if ctx.obj.get("debug"):
+            raise
+        ctx.exit(2)
+
+
+def _display_validation_report(report: ValidationReport):
+    """Display validation report with formatting."""
+    for result in report.repo_results:
+        if result.success:
+            click.echo(click.style(f"✓ {result.repo_name}", fg="green"))
+            click.echo(f"  URL: {result.repo_url}")
+            click.echo(f"  Matched files: {result.total_files}")
+            
+            # Show first 10 files as preview
+            if result.matched_files:
+                click.echo(f"  Sample files:")
+                for file_path, line_count in result.matched_files[:10]:
+                    click.echo(f"    - {file_path} ({line_count:,} lines)")
+                
+                if len(result.matched_files) > 10:
+                    remaining = len(result.matched_files) - 10
+                    click.echo(f"    ... and {remaining} more files")
+            
+            click.echo(f"  Total lines: {result.total_lines:,}")
+            click.echo(f"  Estimated tokens: ~{result.estimated_tokens:,}")
+            click.echo()
+        else:
+            click.echo(click.style(f"✗ {result.repo_name}", fg="red"))
+            click.echo(f"  URL: {result.repo_url}")
+            click.echo(f"  Error: {result.error_message}")
+            click.echo()
+    
+    # Summary
+    click.echo("=" * 60)
+    click.echo(f"Summary:")
+    click.echo(f"  Repositories: {report.successful_repos}/{report.total_repos} successful")
+    if report.successful_repos > 0:
+        click.echo(f"  Total files: {report.total_files:,}")
+        click.echo(f"  Total lines: {report.total_lines:,}")
+        click.echo(f"  Estimated tokens: ~{report.estimated_tokens:,}")
+        click.echo(f"  Estimated cost: ~${report.estimated_cost_usd:.4f} (GPT-4 pricing)")
 
 
 @cli.command()
