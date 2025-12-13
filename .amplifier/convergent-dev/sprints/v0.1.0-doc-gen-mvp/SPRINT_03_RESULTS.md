@@ -230,19 +230,22 @@ Sprint 3 exceeded expectations by delivering a working end-to-end pipeline faste
 **Cleanup Completed**: 2025-12-12 (commit 159da2c)
 
 **Actions Taken**:
-1. ✅ Created issues tracker (`ai_working/doc-gen/issues/ISSUES_TRACKER.md`)
-   - 3 open issues documented
-   - 1 issue (ISSUE-003) resolved immediately via cleanup
+1. ✅ Created issues in beads tracking system
+   - 2 issues tracked for future work
+   - 1 issue (coverage in .gitignore) resolved immediately via cleanup
 2. ✅ Updated .gitignore to exclude test artifacts
    - Added `*.coverage`, `.coverage`, `htmlcov/`
    - Added `.doc-gen/metadata/docs/*/staging/`
 3. ✅ Reverted test data files to clean state
 4. ✅ Verified code cleanliness (no TODOs, no debug statements)
 
-**Issues Captured**:
-- ISSUE-001: Add unit tests for document generation (Medium priority, Technical Debt)
-- ISSUE-002: Improve document generation prompt strategy (Medium priority, Enhancement)
-- ~~ISSUE-003: Add .coverage to .gitignore~~ (RESOLVED by cleanup)
+**Issues Tracked in Beads**:
+- **`...660`**: Add unit tests for document generation (P2, Technical Debt)
+  - Query: `bd list --label technical-debt --label doc-gen`
+- **`...e09`**: Improve document generation prompt strategy (P2, Enhancement)
+  - Query: `bd list --label prompt-engineering --label doc-gen`
+
+**All Sprint 3 Issues**: `bd list --label from-sprint-3`
 
 **Codebase Status**: ✅ Clean and ready for Sprint 4 or release
 
