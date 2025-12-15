@@ -3,3 +3,7 @@ outlines:
   ./docs/api/core/hooks.md: .-docs-api-core-hooks/hooks_outline.json
   ./docs/architecture/kernel.md: .-docs-architecture-kernel/kernel_outline.json
   ./docs/developer/contracts/hook.md: .-docs-developer-contracts-hook/hook_outline.json
+  ./docs/tools/doc-gen-tutorial.md: .-tools-doc-gen-tutorial/tutorial_outline.json
+  ./docs/tools/doc-gen-howto.md: .-tools-doc-gen-howto/howto_outline.json
+  ./docs/tools/doc-gen-reference.md: .-tools-doc-gen-reference/reference_outline.json
+  ./docs/tools/doc-gen-explanation.md: .-tools-doc-gen-explanation/explanation_outline.json

@@ -54,15 +54,12 @@ echo "sk-ant-api03-..." > ~/.claude/api_key.txt
 
 ### 3. Try the Sample
 
-Generate documentation from the included sample outline:
+Generate documentation from the included outline:
 
 ```bash
-tools/doc-gen/doc-gen generate-from-outline \
-  .doc-gen/examples/sample-outline.json \
-  docs/getting-started.md
+tools/doc-gen/doc-gen generate ./docs/api/core/hooks.md
 ```
-
-**Note:** The sample uses placeholder GitHub URLs. For real use, update the outline with actual repository URLs and commit hashes.
+You will see logging demonstrating the progress of generation. A new hooks.md file will be placed under the .doc-gen/staging/
 
 ## Commands
 
