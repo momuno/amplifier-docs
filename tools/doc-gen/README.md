@@ -45,11 +45,40 @@ This creates `.doc-gen/metadata/docs/modules/providers/openai/sources.yaml`.
 
 Edit `sources.yaml` to define your source repositories and file patterns.
 
-### Future commands (coming in Sprint 2+)
+### Validate sources (Sprint 4)
 
-- `doc-gen generate-outline <doc-path>` - Generate document outline (Sprint 2)
-- `doc-gen generate-doc <doc-path>` - Generate document from outline (Sprint 3)
-- `doc-gen validate-sources <doc-path>` - Validate source patterns (Sprint 4)
+```bash
+doc-gen validate-sources docs/example.md
+```
+
+Validates source repositories and patterns, shows matched files, estimates tokens and costs.
+
+### Generate document outline
+
+```bash
+doc-gen generate-outline docs/example.md
+```
+
+Generates structured outline with sections and source file references. Supports both single-repo and multi-repo sources.
+
+### Generate document from outline
+
+```bash
+doc-gen generate-doc docs/example.md
+```
+
+Generates final markdown document from outline. Includes frontmatter and proper formatting.
+
+### Debug mode
+
+```bash
+doc-gen --debug generate-outline docs/example.md
+```
+
+Saves LLM prompts and responses to `.doc-gen/debug/` for troubleshooting.
+
+### Future commands (coming in Sprint 5+)
+
 - `doc-gen review <doc-path>` - Review staged changes (Sprint 5)
 - `doc-gen promote <doc-path>` - Promote staged to final (Sprint 5)
 - `doc-gen check-changes` - Check for source changes (Sprint 5)
@@ -68,14 +97,15 @@ pytest
 pytest --cov
 ```
 
-## Sprint 1 Status
+## Current Status (v0.1.0 - Sprint 4/6)
 
-✅ Project structure and installation
-✅ Config management (API keys, model selection)
-✅ CLI framework with `init` command
-✅ Metadata management (sources.yaml)
-✅ Repository cloning and operations
+✅ **Sprint 1**: Project structure, config management, CLI framework, repository operations  
+✅ **Sprint 2**: LLM integration, outline generation, schema validation  
+✅ **Sprint 3**: Document generation, debug logging, frontmatter handling  
+✅ **Sprint 4**: Multi-repo support, pattern matching, source validation, cost estimation
+
+**Test Coverage**: 73 comprehensive tests, 100% coverage for core modules
 
 ## Next Steps
 
-Sprint 2 will add LLM integration for outline generation.
+Sprint 5 will add change detection and review workflow for safer documentation updates.
