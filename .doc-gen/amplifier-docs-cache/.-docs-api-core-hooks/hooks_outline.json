@@ -16,8 +16,9 @@
         "prompt": "Provide a concise introduction for the Hooks API.",
         "sources": [
           {
-            "file": "amplifier-core/docs/HOOKS_API.md",
-            "reasoning": "Contains the overview section that introduces hooks."
+            "file": "https://github.com/microsoft/amplifier-core/blob/main/docs/HOOKS_API.md",
+            "reasoning": "Contains the overview section that introduces hooks.",
+            "commit": "e0ad0bc85d43233483fc1ce15051436c474a3042"
           }
         ],
         "sections": [
@@ -27,8 +28,9 @@
             "prompt": "Provide a concise introduction for the HookRegistry as the class that manages hook registration and event emission.",
             "sources": [
               {
-                "file": "amplifier-core/amplifier_core/hooks.py",
-                "reasoning": "Defines the HookRegistry class with docstring explaining it manages lifecycle hooks with deterministic execution"
+                "file": "https://github.com/microsoft/amplifier-core/blob/main/amplifier_core/hooks.py",
+                "reasoning": "Defines the HookRegistry class with docstring explaining it manages lifecycle hooks with deterministic execution",
+                "commit": "e0ad0bc85d43233483fc1ce15051436c474a3042"
               }
             ],
             "sections": [
@@ -38,8 +40,9 @@
                 "prompt": "Provide a concise introduction to the methods section for HookRegistry. Include a table of what the methods are. Do NOT include any method sections below that do NOT exist in the source code.",
                 "sources": [
                   {
-                    "file": "amplifier-core/amplifier_core/hooks.py",
-                    "reasoning": "Contains the method implementations. "
+                    "file": "https://github.com/microsoft/amplifier-core/blob/main/amplifier_core/hooks.py",
+                    "reasoning": "Contains the method implementations. ",
+                    "commit": "e0ad0bc85d43233483fc1ce15051436c474a3042"
                   }
                 ],
                 "sections": [
@@ -49,12 +52,14 @@
                     "prompt": "Document the register() method. Show a code example. Explain its parameters and its return.",
                     "sources": [
                       {
-                        "file": "amplifier-core/amplifier_core/hooks.py",
-                        "reasoning": "Contains the register() method implementation with docstring explaining parameters"
+                        "file": "https://github.com/microsoft/amplifier-core/blob/main/amplifier_core/hooks.py",
+                        "reasoning": "Contains the register() method implementation with docstring explaining parameters",
+                        "commit": "e0ad0bc85d43233483fc1ce15051436c474a3042"
                       },
                       {
-                        "file": "amplifier-core/docs/HOOKS_API.md",
-                        "reasoning": "Contains the registration section with function signature, parameter documentation, and comprehensive example"
+                        "file": "https://github.com/microsoft/amplifier-core/blob/main/docs/HOOKS_API.md",
+                        "reasoning": "Contains the registration section with function signature, parameter documentation, and comprehensive example",
+                        "commit": "e0ad0bc85d43233483fc1ce15051436c474a3042"
                       }
                     ],
                     "sections": []
@@ -65,8 +70,9 @@
                     "prompt": "Document the emit() method. Show a code example. Explain its parameters and its return.",
                     "sources": [
                       {
-                        "file": "amplifier-core/amplifier_core/hooks.py",
-                        "reasoning": "Contains the emit() method with comprehensive docstring"
+                        "file": "https://github.com/microsoft/amplifier-core/blob/main/amplifier_core/hooks.py",
+                        "reasoning": "Contains the emit() method with comprehensive docstring",
+                        "commit": "e0ad0bc85d43233483fc1ce15051436c474a3042"
                       }
                     ],
                     "sections": []
@@ -81,8 +87,9 @@
             "prompt": "Introduce HookResult as the data structure returned by hook handlers to control execution flow. Keep it concise.",
             "sources": [
               {
-                "file": "amplifier-core/docs/HOOKS_API.md",
-                "reasoning": "Introduces HookResult and its purpose for controlling execution flow"
+                "file": "https://github.com/microsoft/amplifier-core/blob/main/docs/HOOKS_API.md",
+                "reasoning": "Introduces HookResult and its purpose for controlling execution flow",
+                "commit": "e0ad0bc85d43233483fc1ce15051436c474a3042"
               }
             ],
             "sections": [
@@ -92,8 +99,9 @@
                 "prompt": "Document the available actions in HookResult. Present as a table with Action and Description columns.",
                 "sources": [
                   {
-                    "file": "amplifier-core/docs/HOOKS_API.md",
-                    "reasoning": "Contain the actions table with all action types, their behaviors, and use cases"
+                    "file": "https://github.com/microsoft/amplifier-core/blob/main/docs/HOOKS_API.md",
+                    "reasoning": "Contain the actions table with all action types, their behaviors, and use cases",
+                    "commit": "e0ad0bc85d43233483fc1ce15051436c474a3042"
                   }
                 ],
                 "sections": []
@@ -104,8 +112,9 @@
                 "prompt": "Show the HookResult dataclass definition as a code block with all fields. Include default values and types.",
                 "sources": [
                   {
-                    "file": "amplifier-core/docs/HOOKS_API.md",
-                    "reasoning": "Contains the complete HookResult class definition with proper type annotations for all fields organized by purpose"
+                    "file": "https://github.com/microsoft/amplifier-core/blob/main/docs/HOOKS_API.md",
+                    "reasoning": "Contains the complete HookResult class definition with proper type annotations for all fields organized by purpose",
+                    "commit": "e0ad0bc85d43233483fc1ce15051436c474a3042"
                   }
                 ],
                 "sections": []
@@ -116,8 +125,9 @@
                 "prompt": "Introduce the examples section showing common HookResult usage patterns.",
                 "sources": [
                   {
-                    "file": "amplifier-core/docs/HOOKS_API.md",
-                    "reasoning": "Contain multiple pattern examples demonstrating HookResult usage"
+                    "file": "https://github.com/microsoft/amplifier-core/blob/main/docs/HOOKS_API.md",
+                    "reasoning": "Contain multiple pattern examples demonstrating HookResult usage",
+                    "commit": "e0ad0bc85d43233483fc1ce15051436c474a3042"
                   }
                 ],
                 "sections": [
@@ -127,8 +137,9 @@
                     "prompt": "Show a simple example of returning HookResult for observation-only hooks. Keep the sample under 10 lines.",
                     "sources": [
                       {
-                        "file": "amplifier-core/docs/HOOKS_API.md",
-                        "reasoning": "Contains examples of continue action in context of validation hooks"
+                        "file": "https://github.com/microsoft/amplifier-core/blob/main/docs/HOOKS_API.md",
+                        "reasoning": "Contains examples of continue action in context of validation hooks",
+                        "commit": "e0ad0bc85d43233483fc1ce15051436c474a3042"
                       }
                     ],
                     "sections": []
@@ -139,8 +150,9 @@
                     "prompt": "Show an example of returning HookResult to block an operation. Keep the sample under 10 lines.",
                     "sources": [
                       {
-                        "file": "amplifier-core/docs/HOOKS_API.md",
-                        "reasoning": "The deny action is documented in the actions table and used in pattern examples for blocking operations"
+                        "file": "https://github.com/microsoft/amplifier-core/blob/main/docs/HOOKS_API.md",
+                        "reasoning": "The deny action is documented in the actions table and used in pattern examples for blocking operations",
+                        "commit": "e0ad0bc85d43233483fc1ce15051436c474a3042"
                       }
                     ],
                     "sections": []
@@ -151,8 +163,9 @@
                     "prompt": "Show an example of returning HookResult to inject feedback into the agent's context. Keep the sample under 10 lines.",
                     "sources": [
                       {
-                        "file": "amplifier-core/docs/HOOKS_API.md",
-                        "reasoning": "Provides the context injection pattern with a complete validation hook example showing inject_context action, context_injection field, and user_message"
+                        "file": "https://github.com/microsoft/amplifier-core/blob/main/docs/HOOKS_API.md",
+                        "reasoning": "Provides the context injection pattern with a complete validation hook example showing inject_context action, context_injection field, and user_message",
+                        "commit": "e0ad0bc85d43233483fc1ce15051436c474a3042"
                       }
                     ],
                     "sections": []
@@ -163,8 +176,9 @@
                     "prompt": "Show an example of returning HookResult to request user approval for an operation. Keep the sample under 10 lines.",
                     "sources": [
                       {
-                        "file": "amplifier-core/docs/HOOKS_API.md",
-                        "reasoning": "Provides the approval gates pattern with a production protection example."
+                        "file": "https://github.com/microsoft/amplifier-core/blob/main/docs/HOOKS_API.md",
+                        "reasoning": "Provides the approval gates pattern with a production protection example.",
+                        "commit": "e0ad0bc85d43233483fc1ce15051436c474a3042"
                       }
                     ],
                     "sections": []
