@@ -13,6 +13,7 @@ from .repos import RepoManager
 from .sources import SourceParser, SourceSpecError
 from .validation import SourceValidator, ValidationReport
 from .change_detection import ChangeDetector
+from .review import DiffGenerator
 
 
 @click.group()
@@ -533,6 +534,70 @@ def _check_single_doc(doc_path: Path, repo_mgr: RepoManager, ctx) -> str:
         click.echo(click.style(f"  ✗ Error: {e}", fg="red"))
         click.echo()
         return "no_outline"
+
+
+@cli.command()
+@click.argument("doc-path", type=click.Path())
+@click.pass_context
+def review(ctx, doc_path: str):
+    """Review changes between staging and live documentation.
+    
+    Shows a unified diff of changes between the staging document
+    (generated but not yet promoted) and the live document.
+    
+    Example:
+      doc-gen review docs/modules/providers/openai.md
+    """
+    metadata = MetadataManager(doc_path)
+    
+    try:
+        # Get staging and live paths
+        staging_path = metadata.get_staging_path()
+        live_path = Path(doc_path)
+        
+        # Check if staging exists
+        if not staging_path.exists():
+            click.echo(f"✗ Staging document not found: {staging_path}", err=True)
+            click.echo(f"\nGenerate staging document first:")
+            click.echo(f"  doc-gen generate-doc {doc_path}")
+            ctx.exit(1)
+        
+        # Generate diff
+        generator = DiffGenerator()
+        diff_text, stats = generator.generate_diff(staging_path, live_path)
+        
+        # Display results
+        if not diff_text:
+            click.echo(click.style("✓ No changes", fg="green"))
+            click.echo("Staging and live documents are identical.")
+        else:
+            # Show document path
+            click.echo(f"Reviewing: {doc_path}")
+            click.echo(f"Staging: {staging_path}")
+            click.echo(f"Live: {live_path}")
+            click.echo()
+            
+            # Show diff
+            click.echo(diff_text)
+            click.echo()
+            
+            # Show statistics
+            click.echo("=" * 60)
+            click.echo("Statistics:")
+            click.echo(click.style(f"  + {stats['added']} line(s) added", fg="green"))
+            click.echo(click.style(f"  - {stats['removed']} line(s) removed", fg="red"))
+            if stats['modified'] > 0:
+                click.echo(f"  ~ {stats['modified']} line(s) modified")
+            
+            click.echo()
+            click.echo("Next steps:")
+            click.echo(f"  doc-gen promote {doc_path}  # Promote to live (Sprint 5)")
+        
+    except Exception as e:
+        click.echo(f"✗ Error: {e}", err=True)
+        if ctx.obj.get("debug"):
+            raise
+        ctx.exit(2)
 
 
 if __name__ == "__main__":
