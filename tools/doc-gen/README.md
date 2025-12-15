@@ -16,12 +16,9 @@ doc-gen separates documentation structure (outlines) from content generation. Yo
 | Feature | Description |
 |---------|-------------|
 | **Outline-Based Generation** | Define structure, prompts, and sources in JSON |
-| **Claude Integration** | Uses Anthropic Claude for high-quality content generation |
-| **GitHub Source Pinning** | Fetch sources from GitHub URLs with commit hash versioning |
 | **Debug Logging** | Optional `--debug-prompts` flag logs all LLM interactions |
 | **Hierarchical Generation** | Depth-first traversal maintains context across sections |
 | **Staging Workflow** | Review generated docs before promoting to final location |
-| **Auto-Install Wrapper** | Zero-setup bash wrapper handles installation automatically |
 
 ## Quick Start
 
@@ -79,29 +76,20 @@ Once you have an outline, here's what to customize (see [Outline Format](#outlin
 | **Temperature**<br>`_meta.temperature` | Controls creativity vs consistency.<br>(0.0 = deterministic, 1.0 = creative) | **0.1-0.2:** Technical docs, API reference (default)<br>**0.3-0.4:** Tutorials with examples<br>**0.5+:** Creative content |
 | **Model**<br>`_meta.model` | Chooses which Claude model to use. | **Default:** `claude-sonnet-4-20250514` (great for most docs)<br>**Complex only:** `claude-opus-4-20250514` (slower, more expensive) |
 
-#### See What Gets Sent to Claude
-
-Use `--debug-prompts` to see exactly what Claude receives:
-
-```bash
-tools/doc-gen/doc-gen --debug-prompts generate-from-outline outline.json output.md
-```
-
-Check `.doc-gen/debug/prompts-*.json` to see:
-- Your document instruction in every prompt
-- Section prompts
-- All source file contents
-- Full Claude responses
-
-Use this to refine your prompts!
 
 #### Generate Your Outline
 
 ```bash
-tools/doc-gen/doc-gen generate-from-outline <OUTLINE_PATH> <OUTPUT_PATH> 
+tools/doc-gen/doc-gen --debug-prompts generate-from-outline <OUTLINE_PATH> <OUTPUT_PATH> 
 ```
 
-*Note:* This command requires an outline path and output path, and does not require the outline to be registered. To run `generate` on this new outline, please see the `register-outline` command below.
+> Use `--debug-prompts` to see exactly what Claude receives:
+>
+> Check `.doc-gen/debug/prompts-*.json` to see the full prompt sent for each section.
+
+Use this to refine your prompts!
+
+To run `generate` on this new outline, please see the `register-outline` command below.
 
 ## Commands
 
