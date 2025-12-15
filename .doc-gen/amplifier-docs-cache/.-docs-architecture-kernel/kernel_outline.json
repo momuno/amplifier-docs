@@ -1,13 +1,10 @@
 {
   "_meta": {
     "name": "kernel-philosophy-outline",
-    "description": "Philosophical guide to Amplifier kernel design explaining why the kernel is tiny, stable, and boring with mechanism-not-policy principles",
-    "use_case": "Architecture documentation for developers understanding kernel vs module boundaries and design decisions",
-    "quadrant": "reference",
-    "estimated_lines": "600-800 lines",
-    "generation_method": "forward",
-    "doc_type": "architecture",
-    "user_intent": "Explain kernel philosophy, boundaries, evolution rules, and decision frameworks following Linux kernel-inspired principles"
+    "document_instruction": "Explain kernel philosophy, boundaries, evolution rules, and decision frameworks following Linux kernel-inspired principles. Use clear prose, tables, and code examples to illustrate mechanism vs policy boundaries and evolution principles.",
+    "model": "claude-3-5-sonnet-20241022",
+    "max_tokens": 8000,
+    "temperature": 0.3
   },
   "document": {
     "title": "Kernel Philosophy",
