@@ -14,12 +14,9 @@ doc-gen separates documentation structure (outlines) from content generation. Yo
 ## Features
 
 - **Outline-Based Generation** - Define structure, prompts, and sources in JSON
-- **Claude Integration** - Uses Anthropic Claude for high-quality content
-- **GitHub Source Pinning** - Fetch sources from GitHub URLs with commit hash versioning
 - **Debug Logging** - Optional `--debug-prompts` flag logs all LLM interactions
 - **Hierarchical Generation** - Depth-first traversal maintains context across sections
 - **Staging Workflow** - Review generated docs before promoting to final location
-- **Auto-Install Wrapper** - Zero-setup bash wrapper handles installation automatically
 
 ## Quick Start
 
@@ -63,14 +60,63 @@ You will see logging on generation progress. A new `hooks.md` file will be place
 
 ### 4. Your Turn
 
-Create your own outline to iterate upon. 
+Now create your own outline! Ask Amplifier to generate one for you using reference outlines as examples, or copy an existing outline.
 
-Ask Amplifier to generate one for you using reference outlines as examples, or copy an existing outline.  Edit and generate.
+Once you have an outline, here's what to customize:
+
+#### Key Fields to Edit
+
+**1. Document Instruction** (`_meta.document_instruction`)
+- Sets the overall style for ALL sections
+- Include in every prompt sent to Claude
+- Examples:
+  - API docs: `"Write precise, technical API documentation. Use code examples and tables."`
+  - Tutorial: `"Write friendly, beginner-focused tutorials. Use simple language and step-by-step instructions."`
+  - How-to: `"Write goal-oriented guides. Focus on accomplishing specific tasks."`
+
+**2. Section Prompts** (`sections[].prompt`)
+- Specific instructions for each section
+- Be clear about format (code examples, tables, bullets)
+- Good: `"Document the authenticate() method. Show code example with error handling."`
+- Bad: `"Write about authentication"`
+
+**3. Source Reasoning** (`sources[].reasoning`)
+- Explains WHY each source is relevant
+- Good: `"Contains authenticate() implementation with error handling that we need to document"`
+- Bad: `"Has authentication code"`
+
+**4. Temperature** (`_meta.temperature`)
+- 0.1-0.2: Technical docs, API reference (default)
+- 0.3-0.4: Tutorials with examples
+- 0.5+: Creative content
+
+**5. Model** (`_meta.model`)
+- Default `claude-sonnet-4-20250514` works great for most docs
+- Use `claude-opus-4-20250514` only for complex technical content
+
+#### See What Gets Sent to Claude
+
+Use `--debug-prompts` to see exactly what Claude receives:
+
+```bash
+tools/doc-gen/doc-gen --debug-prompts generate-from-outline outline.json output.md
+```
+
+Check `.doc-gen/debug/prompts-*.json` to see:
+- Your document instruction in every prompt
+- Section prompts
+- All source file contents
+- Full Claude responses
+
+Use this to refine your prompts!
+
+#### Generate Your Outline
 
 ```bash
 tools/doc-gen/doc-gen generate-from-outline <OUTLINE_PATH> <OUTPUT_PATH> 
 ```
-*Note:* This command requires an outline path and output path, and does not require the outline to be registered.  To run `generate` on this new outline, please see the `register-outline` command below.
+
+*Note:* This command requires an outline path and output path, and does not require the outline to be registered. To run `generate` on this new outline, please see the `register-outline` command below.
 
 ## Commands
 
@@ -275,6 +321,189 @@ https://github.com/org/repo/blob/branch/path/to/file
 - `commit` - Git commit hash for version pinning (required)
 
 doc-gen automatically converts blob URLs to raw URLs using the commit hash, ensuring stable references even as the default branch changes.
+
+## Outline Tips
+
+Creating effective outlines is key to generating high-quality documentation. Here are the most important elements to customize:
+
+### What to Customize
+
+#### 1. Document Instruction (`_meta.document_instruction`)
+
+**What it does:** Provides overall guidance that applies to EVERY section generation.
+
+**Why it matters:** This instruction is included in every prompt sent to Claude, setting the tone and style for the entire document.
+
+**Examples:**
+```json
+// For technical API documentation
+"document_instruction": "Write precise, technical API documentation. Use code examples, parameter tables, and return value descriptions. Keep explanations concise and accurate."
+
+// For beginner tutorials
+"document_instruction": "Write friendly, beginner-focused tutorials. Use simple language, step-by-step instructions, and encouraging tone. Include 'what you'll learn' and 'what you'll need' sections."
+
+// For how-to guides
+"document_instruction": "Write goal-oriented how-to guides. Focus on accomplishing specific tasks. Start with the goal, show steps clearly, avoid explaining concepts."
+```
+
+**Tip:** This is the single most impactful field for controlling documentation style.
+
+#### 2. Section Prompts (`sections[].prompt`)
+
+**What it does:** Specific instructions for generating THAT section's content.
+
+**Why it matters:** While `document_instruction` sets overall style, the section `prompt` tells Claude exactly what to write for that specific section.
+
+**Examples:**
+```json
+// Good - Specific and actionable
+"prompt": "Document the authenticate() method. Show a complete code example with error handling. Explain each parameter and what happens on success vs failure."
+
+// Bad - Vague
+"prompt": "Write about authentication"
+
+// Good - Clear expectations
+"prompt": "Provide step-by-step installation instructions. Show the exact commands users need to run. Include troubleshooting for common installation errors."
+
+// Bad - Unclear
+"prompt": "Talk about how to install"
+```
+
+**Tip:** Be specific about format (code examples, tables, bullet points) and what information to include.
+
+#### 3. Source Reasoning (`sources[].reasoning`)
+
+**What it does:** Explains WHY each source file is relevant to the section.
+
+**Why it matters:** Helps Claude understand what information to extract from the source file and how it relates to the section.
+
+**Examples:**
+```json
+// Good - Specific about what's in the file
+"reasoning": "Lines 45-67 implement the authentication logic with error handling and token generation"
+
+// Better - Explains relevance
+"reasoning": "Contains the authenticate() method implementation showing parameter validation, token generation, and error responses that we need to document"
+
+// Bad - Too vague
+"reasoning": "Has authentication code"
+```
+
+**Tip:** Mention specific lines or components if you know them. Explain what information the file provides.
+
+#### 4. Model Selection (`_meta.model`)
+
+**What it does:** Chooses which Claude model to use for generation.
+
+**When to customize:**
+- Use `claude-sonnet-4-20250514` (default) for most documentation - good balance of quality and speed
+- Use `claude-opus-4-20250514` for complex technical content requiring deep reasoning (slower, more expensive)
+
+**Example:**
+```json
+"model": "claude-sonnet-4-20250514"  // Default - use this unless you need Opus
+```
+
+#### 5. Temperature (`_meta.temperature`)
+
+**What it does:** Controls creativity vs consistency (0.0 = deterministic, 1.0 = creative).
+
+**When to customize:**
+- `0.1-0.2` - Technical documentation, API references (default: `0.2`)
+- `0.3-0.4` - Tutorials, explanations with examples
+- `0.5-0.7` - Creative content, blog posts, marketing copy
+
+**Examples:**
+```json
+// Precise API documentation
+"temperature": 0.1
+
+// Friendly tutorial
+"temperature": 0.3
+
+// Creative blog post
+"temperature": 0.6
+```
+
+**Tip:** Lower temperature = more consistent output when regenerating. Higher temperature = more varied, creative writing.
+
+### Debugging Your Outlines
+
+To see EXACTLY what prompts are sent to Claude and what responses come back:
+
+```bash
+tools/doc-gen/doc-gen --debug-prompts generate docs/api/overview.md
+```
+
+This creates a debug log at `.doc-gen/debug/prompts-YYYYMMDD-HHMMSS.json` containing:
+
+- Full prompt text sent to Claude
+- Document instruction included
+- Section prompt included
+- All source file contents
+- Previous section context
+- Complete Claude response
+- Token estimates (prompt and response)
+- Timestamps and model info
+
+**Use debug logs to:**
+- See if your `document_instruction` is working as intended
+- Check if section `prompts` are clear enough
+- Verify source files contain the expected information
+- Understand why output doesn't match expectations
+- Optimize prompts based on what Claude actually receives
+
+**Example workflow:**
+```bash
+# 1. Generate with debug
+tools/doc-gen/doc-gen --debug-prompts generate docs/api/overview.md
+
+# 2. Review the debug log
+cat .doc-gen/debug/prompts-YYYYMMDD-HHMMSS.json | jq '.[].prompt' | less
+
+# 3. Adjust your outline based on what you see
+vim .doc-gen/amplifier-docs-cache/docs-api-overview/overview_outline.json
+
+# 4. Regenerate
+tools/doc-gen/doc-gen generate docs/api/overview.md
+```
+
+### Quick Start Template
+
+Copy this as a starting point for your outline:
+
+```json
+{
+  "_meta": {
+    "name": "my-doc-outline",
+    "document_instruction": "Write [STYLE] documentation. Use [FORMAT]. Keep [TONE].",
+    "model": "claude-sonnet-4-20250514",
+    "max_response_tokens": 8000,
+    "temperature": 0.2
+  },
+  "document": {
+    "title": "My Document Title",
+    "output": "docs/my-doc.md",
+    "sections": [
+      {
+        "heading": "# Main Section",
+        "level": 1,
+        "prompt": "Write [SPECIFIC INSTRUCTIONS]. Include [REQUIREMENTS].",
+        "sources": [
+          {
+            "file": "https://github.com/org/repo/blob/main/path/file.py",
+            "reasoning": "Contains [WHAT IT HAS] that we need for [PURPOSE]",
+            "commit": "abc123"
+          }
+        ],
+        "sections": []
+      }
+    ]
+  }
+}
+```
+
+Replace the bracketed placeholders with your specific requirements.
 
 ## Workflow
 
