@@ -285,9 +285,9 @@ class DocumentGenerator:
         document_so_far = ""
         if self.generated_document:
             document_so_far = "\n\n".join(self.generated_document)
-            # Truncate if too long (keep last 3000 chars for context)
-            if len(document_so_far) > 3000:
-                document_so_far = "...\n\n" + document_so_far[-3000:]
+            # Truncate if too long (keep last 5000 chars for context)
+            if len(document_so_far) > 5000:
+                document_so_far = "...\n\n" + document_so_far[-5000:]
 
         # Read source files
         source_content = self._read_source_files(section)
@@ -385,21 +385,22 @@ CRITICAL Guidelines for Using Previous Content:
         else:
             context_section = "\n(This is the first section - no previous content exists yet.)\n"
 
-        # Build LLM prompt with user intent and document context
-        user_intent = ""
-        if hasattr(self, 'outline'):
-            user_intent = f"""
-**Document Purpose:** {self.outline.purpose}
-**Documentation Type:** {self.outline.doc_type}
+        # Build document instruction context
+        document_instruction = ""
+        if hasattr(self, 'outline') and self.outline.document_instruction:
+            document_instruction = f"""
+==============================================================================
+DOCUMENT INSTRUCTION
+==============================================================================
+{self.outline.document_instruction}
 
 """
 
         prompt = f"""You are a technical documentation writer. Generate content for the following section.
-
+{document_instruction}
 ==============================================================================
-DOCUMENT METADATA
+SECTION METADATA
 ==============================================================================
-{user_intent}
 **Section Heading:** {section.heading}
 
 ==============================================================================
@@ -438,10 +439,12 @@ OUTPUT INSTRUCTIONS
 
 Generate the content now:"""
 
-        # Generate content using LLM
+        # Generate content using LLM with outline-specified configuration
         content = self.llm_client.generate(
             prompt,
-            temperature=0.3,
+            temperature=self.outline.temperature,
+            model=self.outline.model,
+            max_tokens=self.outline.max_tokens,
             location="generate/doc_generator.py:generate_from_outline"
         )
 

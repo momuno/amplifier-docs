@@ -51,32 +51,29 @@ class Section:
 class DocumentOutline:
     """Complete document outline."""
 
+    name: str
+    document_instruction: str
     title: str
-    output_path: str
-    doc_type: str
-    purpose: str
+    output: str
     sections: list[Section]
-    generated_at: str = None
-
-    def __post_init__(self):
-        if self.generated_at is None:
-            self.generated_at = datetime.now(timezone.utc).isoformat()
+    # LLM configuration (optional, with defaults)
+    model: str = "claude-3-5-sonnet-20241022"
+    max_tokens: int = 8000
+    temperature: float = 0.3
 
     def to_dict(self) -> dict:
-        """Convert to dictionary with metadata."""
+        """Convert to dictionary with _meta and document structure."""
         return {
             "_meta": {
-                "name": f"generated-{self.doc_type}-{datetime.now().strftime('%Y%m%d')}",
-                "description": self.purpose,
-                "use_case": self.purpose,
-                "quadrant": self.doc_type,
-                "doc_type": self.doc_type,
-                "user_intent": self.purpose,
-                "output": self.output_path,
+                "name": self.name,
+                "document_instruction": self.document_instruction,
+                "model": self.model,
+                "max_tokens": self.max_tokens,
+                "temperature": self.temperature,
             },
             "document": {
                 "title": self.title,
-                "output": self.output_path,
+                "output": self.output,
                 "sections": [s.to_dict() for s in self.sections],
             }
         }
@@ -112,10 +109,13 @@ class DocumentOutline:
         sections = [parse_section(s) for s in data["document"]["sections"]]
 
         return cls(
+            name=data["_meta"]["name"],
+            document_instruction=data["_meta"]["document_instruction"],
             title=data["document"]["title"],
-            output_path=data["document"]["output"],
-            doc_type=data["_meta"]["doc_type"],
-            purpose=data["_meta"]["user_intent"],
+            output=data["document"]["output"],
             sections=sections,
-            generated_at=data["_meta"].get("generated_at", ""),
+            # LLM config with defaults if not present
+            model=data["_meta"].get("model", "claude-3-5-sonnet-20241022"),
+            max_tokens=data["_meta"].get("max_tokens", 8000),
+            temperature=data["_meta"].get("temperature", 0.3),
         )

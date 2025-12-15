@@ -42,31 +42,37 @@ class ClaudeClient:
         except ImportError:
             raise ImportError("anthropic package not installed. Run: pip install anthropic")
 
-    def generate(self, prompt: str, temperature: float = 0.3, location: str = "unknown") -> str:
+    def generate(self, prompt: str, temperature: float = 0.3, model: str = None, max_tokens: int = None, location: str = "unknown") -> str:
         """Generate response from Claude with optional debug logging.
 
         Args:
             prompt: The prompt to send to Claude
             temperature: Temperature setting (0.0-1.0)
+            model: Model to use (overrides default if provided)
+            max_tokens: Maximum tokens to generate (overrides default if provided)
             location: Location identifier for debug logging
 
         Returns:
             Generated text response
         """
+        # Use provided values or fall back to defaults
+        use_model = model or self.model
+        use_max_tokens = max_tokens or 4096
+
         # Log request if debug mode enabled
         if PromptLogger.is_enabled():
             PromptLogger.log_api_call(
-                model=self.model,
+                model=use_model,
                 prompt=prompt,
                 temperature=temperature,
-                max_tokens=4096,
+                max_tokens=use_max_tokens,
                 location=location
             )
 
         # Make API call
         message = self.client.messages.create(
-            model=self.model,
-            max_tokens=4096,
+            model=use_model,
+            max_tokens=use_max_tokens,
             temperature=temperature,
             messages=[{"role": "user", "content": prompt}]
         )
@@ -75,10 +81,10 @@ class ClaudeClient:
         # Log response if debug mode enabled
         if PromptLogger.is_enabled():
             PromptLogger.log_api_call(
-                model=self.model,
+                model=use_model,
                 prompt=prompt,
                 temperature=temperature,
-                max_tokens=4096,
+                max_tokens=use_max_tokens,
                 location=location,
                 response=response
             )
