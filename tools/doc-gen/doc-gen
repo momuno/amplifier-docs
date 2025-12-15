@@ -1,6 +1,41 @@
 #!/usr/bin/env bash
 # Wrapper script to run doc-gen from its virtualenv
 
+# Show wrapper help if 'help' is requested (before installation or as fallback)
+if [ "$1" = "help" ]; then
+    cat << 'EOF'
+doc-gen: Documentation generation tool using Claude
+
+QUICK START:
+  tools/doc-gen/doc-gen init          # Initialize (auto-installs on first run)
+
+COMMANDS:
+  init                                      # Create config and storage
+  register-outline <outline> <doc>          # Register an outline for a doc file
+  generate <doc-path>                       # Generate doc from registered outline
+  generate-from-outline <outline> <output>  # Generate directly from outline path
+
+  --help                              # Show detailed help (after install)
+  --debug-prompts                     # Log all LLM prompts to .doc-gen/debug/
+
+EXAMPLES:
+  # First time setup
+  tools/doc-gen/doc-gen init
+
+  # Register an outline
+  tools/doc-gen/doc-gen register-outline outline.json docs/api/overview.md
+
+  # Generate documentation
+  tools/doc-gen/doc-gen generate docs/api/overview.md
+
+  # With debug logging
+  tools/doc-gen/doc-gen --debug-prompts generate docs/api/overview.md
+
+For full documentation, see tools/doc-gen/README.md
+EOF
+    exit 0
+fi
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Auto-install if venv doesn't exist
