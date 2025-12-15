@@ -14,6 +14,7 @@ from .sources import SourceParser, SourceSpecError
 from .validation import SourceValidator, ValidationReport
 from .change_detection import ChangeDetector
 from .review import DiffGenerator
+from .promotion import DocumentPromoter, PromotionError
 
 
 @click.group()
@@ -595,6 +596,49 @@ def review(ctx, doc_path: str):
         
     except Exception as e:
         click.echo(f"✗ Error: {e}", err=True)
+        if ctx.obj.get("debug"):
+            raise
+        ctx.exit(2)
+
+
+@cli.command()
+@click.argument("doc-path", type=click.Path())
+@click.pass_context
+def promote(ctx, doc_path: str):
+    """Promote staging document to live.
+    
+    Copies the staging document to the live location, creating a
+    timestamped backup of the existing live document if it exists.
+    
+    Example:
+      doc-gen promote docs/modules/providers/openai.md
+    """
+    metadata = MetadataManager(doc_path)
+    
+    try:
+        promoter = DocumentPromoter(metadata)
+        result = promoter.promote()
+        
+        if result["backup_path"]:
+            click.echo(click.style("✓ Promotion successful!", fg="green"))
+            click.echo(f"✓ Staging promoted to live: {result['live_path']}")
+            click.echo(f"✓ Backup created: {result['backup_path']}")
+        else:
+            click.echo(click.style("✓ Promotion successful!", fg="green"))
+            click.echo(f"✓ Staging promoted to live (first promotion): {result['live_path']}")
+            click.echo("  No backup created (no previous live document)")
+        
+        click.echo()
+        click.echo("Next steps:")
+        click.echo(f"  git add {result['live_path']}")
+        click.echo(f"  git commit -m \"docs: update {doc_path}\"")
+        click.echo(f"  git push")
+        
+    except PromotionError as e:
+        click.echo(f"✗ Error: {e}", err=True)
+        ctx.exit(1)
+    except Exception as e:
+        click.echo(f"✗ Unexpected error: {e}", err=True)
         if ctx.obj.get("debug"):
             raise
         ctx.exit(2)
