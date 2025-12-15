@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+# Wrapper script to run doc-gen from its virtualenv
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Auto-install if venv doesn't exist
+if [ ! -d "${SCRIPT_DIR}/.venv" ]; then
+    echo "First-time setup: Installing doc-gen..."
+
+    # Try python3 first, then python
+    if command -v python3 &> /dev/null; then
+        PYTHON=python3
+    elif command -v python &> /dev/null; then
+        PYTHON=python
+    else
+        echo "Error: Python not found. Please install Python 3.11 or higher."
+        exit 1
+    fi
+
+    "$PYTHON" -m venv "${SCRIPT_DIR}/.venv"
+    "${SCRIPT_DIR}/.venv/bin/pip" install -e "${SCRIPT_DIR}" -q
+    echo "✓ Setup complete"
+fi
+
+exec "${SCRIPT_DIR}/.venv/bin/doc-gen" "$@"

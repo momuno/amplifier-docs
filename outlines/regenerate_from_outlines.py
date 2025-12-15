@@ -8,7 +8,7 @@ This script:
    - Finds its existing outline in .doc-evergreen/amplifier-docs-cache/
    - Extracts source repository information from the outline
    - Clones the source repo to a temp directory
-   - Generates new docs using doc-evergreen generate-from-outline
+   - Generates new docs using doc-gen generate-from-outline
    - Copies generated doc back to original location and cache
 """
 
@@ -382,7 +382,7 @@ def strip_repo_prefix_from_outline(outline_data: dict, repo_name: str) -> dict:
 
 def generate_from_outline(repo_path: Path, outline_path: Path, expected_output_name: str, repo_name: str) -> Optional[Path]:
     """
-    Generate documentation from outline using doc-evergreen.
+    Generate documentation from outline using doc-gen.
 
     The output filename is specified in the outline metadata, not as a command argument.
 
@@ -420,13 +420,9 @@ def generate_from_outline(repo_path: Path, outline_path: Path, expected_output_n
         # Change to repo root
         os.chdir(repo_path)
 
-        # Copy modified outline file into repo directory preserving the full cache structure
-        # doc-evergreen expects outlines in the same structure: .doc-evergreen/amplifier-docs-cache/...
-        # We need to recreate the parent directory structure
-        outline_parent_dir = outline_path.parent  # e.g., .../docs-api-cli-index/
-        cache_subpath = outline_parent_dir.name  # e.g., docs-api-cli-index
-
-        local_cache_dir = repo_path / ".doc-evergreen" / "amplifier-docs-cache" / cache_subpath
+        # Copy modified outline file into repo directory
+        # Use temporary location for modified outline
+        local_cache_dir = repo_path / ".doc-gen" / "temp"
         local_cache_dir.mkdir(parents=True, exist_ok=True)
 
         local_outline_path = local_cache_dir / outline_path.name
@@ -436,9 +432,12 @@ def generate_from_outline(repo_path: Path, outline_path: Path, expected_output_n
             json.dump(modified_outline, f, indent=2)
         log_info(f"Copied modified outline to {local_outline_path.relative_to(repo_path)}")
 
-        # Run doc-evergreen generate-from-outline with the local path
+        # Use doc-gen from amplifier-docs repo
+        doc_gen_path = Path(__file__).parent.parent / "doc-gen" / ".venv" / "bin" / "doc-gen"
+
+        # Run doc-gen generate-from-outline with the local path
         result = subprocess.run(
-            ["doc-evergreen", "--debug-prompts", "generate-from-outline", str(local_outline_path)],
+            [str(doc_gen_path), "--debug-prompts", "generate-from-outline", str(local_outline_path)],
             capture_output=True,
             text=True,
             check=True

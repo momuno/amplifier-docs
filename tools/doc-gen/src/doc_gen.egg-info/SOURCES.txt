@@ -1,0 +1,17 @@
+README.md
+pyproject.toml
+src/doc_gen/__init__.py
+src/doc_gen/cli.py
+src/doc_gen/config.py
+src/doc_gen/llm_client.py
+src/doc_gen/prompt_logger.py
+src/doc_gen/utils.py
+src/doc_gen.egg-info/PKG-INFO
+src/doc_gen.egg-info/SOURCES.txt
+src/doc_gen.egg-info/dependency_links.txt
+src/doc_gen.egg-info/entry_points.txt
+src/doc_gen.egg-info/requires.txt
+src/doc_gen.egg-info/top_level.txt
+src/doc_gen/generate/__init__.py
+src/doc_gen/generate/doc_generator.py
+src/doc_gen/generate/outline_models.py
