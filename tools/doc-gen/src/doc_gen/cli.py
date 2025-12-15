@@ -15,6 +15,7 @@ from .validation import SourceValidator, ValidationReport
 from .change_detection import ChangeDetector
 from .review import DiffGenerator
 from .promotion import DocumentPromoter, PromotionError
+from .orchestration import BatchOrchestrator
 
 
 @click.group()
@@ -642,6 +643,149 @@ def promote(ctx, doc_path: str):
         if ctx.obj.get("debug"):
             raise
         ctx.exit(2)
+
+
+@cli.command()
+@click.option("--dry-run", is_flag=True, help="Preview which docs need regeneration without doing it")
+@click.pass_context
+def regenerate_changed(ctx, dry_run: bool):
+    """Regenerate all documents with changed sources.
+    
+    Detects all documents with stale sources (source files changed since
+    last generation) and regenerates them automatically.
+    
+    Examples:
+      doc-gen regenerate-changed           # Regenerate all changed docs
+      doc-gen regenerate-changed --dry-run # Preview without regenerating
+    """
+    config = ctx.obj["config"]
+    
+    try:
+        with RepoManager() as repo_mgr:
+            # Select LLM client based on provider
+            if config.llm_provider == "anthropic":
+                llm_client = AnthropicClient(
+                    api_key=config.llm_api_key,
+                    model=config.llm_model,
+                    timeout=config.llm_timeout,
+                )
+            else:  # Default to OpenAI
+                llm_client = OpenAIClient(
+                    api_key=config.llm_api_key,
+                    model=config.llm_model,
+                    timeout=config.llm_timeout,
+                )
+            
+            # Enable debug mode if requested
+            llm_client.set_debug(ctx.obj.get("debug", False), command_name="regenerate-changed")
+            
+            orchestrator = BatchOrchestrator(llm_client, repo_mgr)
+            
+            # Dry run: just show what needs regeneration
+            if dry_run:
+                click.echo("Checking for stale documentation...")
+                changed_docs = orchestrator._find_changed_docs()
+                
+                if not changed_docs:
+                    click.echo(click.style("✓ All documentation up-to-date!", fg="green"))
+                    return
+                
+                click.echo(f"\n{len(changed_docs)} document(s) need regeneration:\n")
+                for doc in changed_docs:
+                    click.echo(f"  - {doc}")
+                
+                click.echo(f"\nRun without --dry-run to regenerate these documents.")
+                return
+            
+            # Actual regeneration
+            click.echo("Checking for stale documentation...")
+            report = orchestrator.regenerate_changed()
+            
+            if report.total_docs == 0:
+                click.echo(click.style("✓ All documentation up-to-date!", fg="green"))
+                return
+            
+            # Show progress per document
+            click.echo(f"\nRegenerating {report.total_docs} document(s):\n")
+            for i, result in enumerate(report.results, 1):
+                if result.success:
+                    click.echo(f"  {i}/{report.total_docs} ✓ {result.doc_path}")
+                else:
+                    click.echo(f"  {i}/{report.total_docs} ✗ {result.doc_path}")
+            
+            # Display comprehensive summary
+            click.echo("\n" + "=" * 60)
+            click.echo("Summary:")
+            
+            if report.successful > 0:
+                click.echo(click.style(f"  ✓ {report.successful} successful", fg="green"))
+            
+            if report.failed > 0:
+                click.echo(click.style(f"  ✗ {report.failed} failed", fg="red"))
+            
+            click.echo(f"  Duration: {_format_duration(report.total_duration_seconds)}")
+            click.echo(f"  Total tokens: {report.total_tokens:,}")
+            click.echo(f"  Estimated cost: ${report.estimated_cost_usd:.2f}")
+            
+            # Show failed documents with error messages
+            if report.failed > 0:
+                click.echo("\nFailed documents:")
+                for result in report.results:
+                    if not result.success:
+                        click.echo(click.style(f"  ✗ {result.doc_path}", fg="red"))
+                        click.echo(f"    Error: {result.error_message}")
+            
+            # Show next steps if successful
+            if report.successful > 0 and report.failed == 0:
+                click.echo("\nNext steps:")
+                click.echo("  1. Review changes: doc-gen review <doc-path>")
+                click.echo("  2. Promote to live: doc-gen promote <doc-path>")
+            
+            # Exit code: 0 if all successful, 1 if any failures
+            if report.failed > 0:
+                ctx.exit(1)
+    
+    except click.exceptions.Exit:
+        # Re-raise Click's Exit exception (from ctx.exit())
+        raise
+    except LLMError as e:
+        click.echo(f"✗ LLM Error: {e}", err=True)
+        click.echo(f"\nTroubleshooting:")
+        click.echo(f"  - Check API key is set correctly")
+        click.echo(f"  - Try again (may be transient)")
+        click.echo(f"  - Check LLM provider status")
+        ctx.exit(1)
+    except Exception as e:
+        click.echo(f"✗ Unexpected error: {e}", err=True)
+        if ctx.obj.get("debug"):
+            raise
+        ctx.exit(2)
+
+
+def _format_duration(seconds: float) -> str:
+    """Format duration in human-readable format.
+    
+    Args:
+        seconds: Duration in seconds
+    
+    Returns:
+        Formatted string:
+        - <60s: "Xs"
+        - <3600s: "Xm Ys"
+        - >=3600s: "Xh Ym"
+    """
+    seconds = int(seconds)
+    
+    if seconds < 60:
+        return f"{seconds}s"
+    elif seconds < 3600:
+        minutes = seconds // 60
+        secs = seconds % 60
+        return f"{minutes}m {secs}s"
+    else:
+        hours = seconds // 3600
+        minutes = (seconds % 3600) // 60
+        return f"{hours}h {minutes}m"
 
 
 if __name__ == "__main__":
