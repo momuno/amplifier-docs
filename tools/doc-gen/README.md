@@ -13,10 +13,15 @@ doc-gen separates documentation structure (outlines) from content generation. Yo
 
 ## Features
 
-- **Outline-Based Generation** - Define structure, prompts, and sources in JSON
-- **Debug Logging** - Optional `--debug-prompts` flag logs all LLM interactions
-- **Hierarchical Generation** - Depth-first traversal maintains context across sections
-- **Staging Workflow** - Review generated docs before promoting to final location
+| Feature | Description |
+|---------|-------------|
+| **Outline-Based Generation** | Define structure, prompts, and sources in JSON |
+| **Claude Integration** | Uses Anthropic Claude for high-quality content generation |
+| **GitHub Source Pinning** | Fetch sources from GitHub URLs with commit hash versioning |
+| **Debug Logging** | Optional `--debug-prompts` flag logs all LLM interactions |
+| **Hierarchical Generation** | Depth-first traversal maintains context across sections |
+| **Staging Workflow** | Review generated docs before promoting to final location |
+| **Auto-Install Wrapper** | Zero-setup bash wrapper handles installation automatically |
 
 ## Quick Start
 
@@ -62,37 +67,17 @@ You will see logging on generation progress. A new `hooks.md` file will be place
 
 Now create your own outline! Ask Amplifier to generate one for you using reference outlines as examples, or copy an existing outline.
 
-Once you have an outline, here's what to customize:
+Once you have an outline, here's what to customize (see [Outline Format](#outline-format) for complete structure reference):
 
 #### Key Fields to Edit
 
-**1. Document Instruction** (`_meta.document_instruction`)
-- Sets the overall style for ALL sections
-- Include in every prompt sent to Claude
-- Examples:
-  - API docs: `"Write precise, technical API documentation. Use code examples and tables."`
-  - Tutorial: `"Write friendly, beginner-focused tutorials. Use simple language and step-by-step instructions."`
-  - How-to: `"Write goal-oriented guides. Focus on accomplishing specific tasks."`
-
-**2. Section Prompts** (`sections[].prompt`)
-- Specific instructions for each section
-- Be clear about format (code examples, tables, bullets)
-- Good: `"Document the authenticate() method. Show code example with error handling."`
-- Bad: `"Write about authentication"`
-
-**3. Source Reasoning** (`sources[].reasoning`)
-- Explains WHY each source is relevant
-- Good: `"Contains authenticate() implementation with error handling that we need to document"`
-- Bad: `"Has authentication code"`
-
-**4. Temperature** (`_meta.temperature`)
-- 0.1-0.2: Technical docs, API reference (default)
-- 0.3-0.4: Tutorials with examples
-- 0.5+: Creative content
-
-**5. Model** (`_meta.model`)
-- Default `claude-sonnet-4-20250514` works great for most docs
-- Use `claude-opus-4-20250514` only for complex technical content
+| Field | Purpose | Examples & Tips |
+|-------|---------|-----------------|
+| **Document Instruction**<br>`_meta.document_instruction` | Sets overall style for ALL sections.<br>Included in every prompt to Claude. | **API docs:** `"Write precise, technical API documentation. Use code examples and tables."`<br>**Tutorial:** `"Write friendly, beginner-focused tutorials. Use simple language and step-by-step instructions."`<br>**How-to:** `"Write goal-oriented guides. Focus on accomplishing specific tasks."` |
+| **Section Prompts**<br>`sections[].prompt` | Specific instructions for each section.<br>Be clear about format needed. | ✅ **Good:** `"Document the authenticate() method. Show code example with error handling."`<br>❌ **Bad:** `"Write about authentication"` |
+| **Source Reasoning**<br>`sources[].reasoning` | Explains WHY each source is relevant.<br>Helps Claude extract right info. | ✅ **Good:** `"Contains authenticate() implementation with error handling that we need to document"`<br>❌ **Bad:** `"Has authentication code"` |
+| **Temperature**<br>`_meta.temperature` | Controls creativity vs consistency.<br>(0.0 = deterministic, 1.0 = creative) | **0.1-0.2:** Technical docs, API reference (default)<br>**0.3-0.4:** Tutorials with examples<br>**0.5+:** Creative content |
+| **Model**<br>`_meta.model` | Chooses which Claude model to use. | **Default:** `claude-sonnet-4-20250514` (great for most docs)<br>**Complex only:** `claude-opus-4-20250514` (slower, more expensive) |
 
 #### See What Gets Sent to Claude
 
