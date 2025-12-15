@@ -1,7 +1,9 @@
 """Document generation from outline."""
 
-import subprocess
+import re
+import urllib.request
 from pathlib import Path
+from urllib.error import URLError
 
 from doc_gen.generate.outline_models import DocumentOutline, Section
 from doc_gen.llm_client import ClaudeClient
@@ -31,11 +33,12 @@ class DocumentGenerator:
         self.total_sections = 0
         self.outline_updated = False  # Track if outline was modified with new commit hashes
 
-    def generate_from_outline(self, outline_path: Path) -> str:
+    def generate_from_outline(self, outline_path: Path, output_path: str) -> str:
         """Generate complete document from outline.
 
         Args:
             outline_path: Path to outline.json file
+            output_path: Where to write the generated documentation (relative to project root)
 
         Returns:
             Generated document content as string
@@ -71,13 +74,13 @@ class DocumentGenerator:
         # Assemble complete document
         full_document = "\n\n".join(document_parts)
 
-        # Write to output file
-        output_path = self.project_root / outline.output_path
-        output_path.parent.mkdir(parents=True, exist_ok=True)
-        output_path.write_text(full_document)
+        # Write to output file (use provided output_path instead of outline's)
+        output_file = self.project_root / output_path
+        output_file.parent.mkdir(parents=True, exist_ok=True)
+        output_file.write_text(full_document)
 
         if self.progress_callback:
-            self.progress_callback(f"\n✅ Document written to: {outline.output_path}\n")
+            self.progress_callback(f"\n✅ Document written to: {output_path}\n")
 
         return full_document
 
@@ -153,34 +156,77 @@ class DocumentGenerator:
 
         return "\n\n".join(parts)
 
-    def _get_file_commit_hash(self, file_path: Path) -> str | None:
-        """Get the current commit hash for a file using git.
+    def _parse_github_url(self, url: str) -> tuple[str, str, str] | None:
+        """Parse GitHub URL into (owner, repo, file_path).
 
         Args:
-            file_path: Path to the file
+            url: GitHub URL (blob or raw format)
 
         Returns:
-            Commit hash string, or None if file is not in git or git is not available
+            Tuple of (owner, repo, file_path) or None if not a valid GitHub URL
+
+        Examples:
+            https://github.com/microsoft/amplifier/blob/main/README.md
+            → ("microsoft", "amplifier", "README.md")
+            
+            https://raw.githubusercontent.com/microsoft/amplifier/abc123/README.md
+            → ("microsoft", "amplifier", "README.md")
+        """
+        # Try blob URL pattern: github.com/owner/repo/blob/branch/path
+        blob_pattern = r'^https?://github\.com/([^/]+)/([^/]+)/blob/[^/]+/(.+)$'
+        match = re.match(blob_pattern, url)
+        if match:
+            return (match.group(1), match.group(2), match.group(3))
+        
+        # Try raw URL pattern: raw.githubusercontent.com/owner/repo/commit/path
+        raw_pattern = r'^https?://raw\.githubusercontent\.com/([^/]+)/([^/]+)/[^/]+/(.+)$'
+        match = re.match(raw_pattern, url)
+        if match:
+            return (match.group(1), match.group(2), match.group(3))
+        
+        return None
+
+    def _github_url_to_raw(self, url: str, commit: str) -> str | None:
+        """Convert GitHub blob URL to raw URL with specific commit.
+
+        Args:
+            url: GitHub blob URL
+            commit: Commit hash to fetch
+
+        Returns:
+            Raw GitHub URL with commit, or None if parsing failed
+
+        Example:
+            https://github.com/microsoft/amplifier/blob/main/README.md + "abc123"
+            → https://raw.githubusercontent.com/microsoft/amplifier/abc123/README.md
+        """
+        parsed = self._parse_github_url(url)
+        if not parsed:
+            return None
+        
+        owner, repo, file_path = parsed
+        return f"https://raw.githubusercontent.com/{owner}/{repo}/{commit}/{file_path}"
+
+    def _fetch_remote_file(self, url: str) -> str | None:
+        """Fetch content from a remote URL.
+
+        Args:
+            url: URL to fetch
+
+        Returns:
+            File content as string, or None if fetch failed
         """
         try:
-            result = subprocess.run(
-                ['git', 'log', '-1', '--format=%H', '--', str(file_path)],
-                cwd=self.project_root,
-                capture_output=True,
-                text=True,
-                timeout=5
-            )
-            if result.returncode == 0 and result.stdout.strip():
-                return result.stdout.strip()
-        except (subprocess.TimeoutExpired, FileNotFoundError):
-            # git not available or timeout
-            pass
-        return None
+            with urllib.request.urlopen(url, timeout=10) as response:
+                content = response.read().decode('utf-8')
+                return content
+        except (URLError, TimeoutError, UnicodeDecodeError):
+            return None
 
     def _read_source_files(self, section: Section) -> str:
         """Read and format source files for a section.
 
-        Also checks and updates commit hashes for version tracking.
+        Fetches source files from GitHub URLs at specific commit hashes.
 
         Args:
             section: Section with source file references
@@ -193,35 +239,34 @@ class DocumentGenerator:
 
         source_parts = []
         for source in section.sources:
-            file_path = self.project_root / source.file
-
-            if not file_path.exists():
-                source_parts.append(f"**{source.file}** (file not found)")
+            # All source files must be GitHub URLs
+            if not source.file.startswith(("http://", "https://")):
+                source_parts.append(f"**{source.file}** (must be a GitHub URL)")
                 continue
-
-            # Check and update commit hash if specified in outline
-            if source.commit is not None:
-                current_commit = self._get_file_commit_hash(file_path)
-                if current_commit and current_commit != source.commit:
-                    # File has changed - update the outline with new commit hash
-                    source.commit = current_commit
-                    self.outline_updated = True
-
-            try:
-                # Read full file
-                content = file_path.read_text(encoding='utf-8', errors='ignore')
-
-                # Build source entry with reasoning
-                source_entry_parts = [f"**File: {source.file}**"]
-
-                # Include reasoning for why this file is relevant
-                if hasattr(source, 'reasoning') and source.reasoning:
-                    source_entry_parts.append(f"**Why this file is relevant:** {source.reasoning}")
-
-                source_entry_parts.append(f"```\n{content}\n```")
-                source_parts.append("\n".join(source_entry_parts))
-            except Exception as e:
-                source_parts.append(f"**{source.file}** (error reading: {e})")
+            
+            # Require commit hash for version pinning
+            if not source.commit:
+                source_parts.append(f"**{source.file}** (requires commit hash)")
+                continue
+            
+            # Convert to raw URL with commit
+            raw_url = self._github_url_to_raw(source.file, source.commit)
+            if not raw_url:
+                source_parts.append(f"**{source.file}** (invalid GitHub URL)")
+                continue
+            
+            # Fetch remote content
+            content = self._fetch_remote_file(raw_url)
+            if content is None:
+                source_parts.append(f"**{source.file}** (failed to fetch from GitHub)")
+                continue
+            
+            # Build source entry
+            source_entry_parts = [f"**File: {source.file}**"]
+            if hasattr(source, 'reasoning') and source.reasoning:
+                source_entry_parts.append(f"**Why this file is relevant:** {source.reasoning}")
+            source_entry_parts.append(f"```\n{content}\n```")
+            source_parts.append("\n".join(source_entry_parts))
 
         return "\n\n".join(source_parts)
 

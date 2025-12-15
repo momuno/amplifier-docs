@@ -32,13 +32,15 @@ def cli(ctx, debug_prompts):
 
 @cli.command("generate-from-outline")
 @click.argument("outline_path", type=click.Path(exists=True))
-def generate_from_outline(outline_path: str):
+@click.argument("output_path", type=str)
+def generate_from_outline(outline_path: str, output_path: str):
     """Generate documentation from an existing outline JSON file.
 
     OUTLINE_PATH: Path to the outline.json file
+    OUTPUT_PATH: Where to write the generated documentation
 
     Example:
-        doc-gen generate-from-outline .doc-gen/cache/docs-api-overview_outline.json
+        doc-gen generate-from-outline outline.json docs/api/overview.md
     """
     outline_path = Path(outline_path)
 
@@ -62,11 +64,12 @@ def generate_from_outline(outline_path: str):
     # Generate document
     try:
         click.echo(f"📄 Generating documentation from outline: {outline_path.name}\n")
-        result = generator.generate_from_outline(outline_path)
+        result = generator.generate_from_outline(outline_path, output_path)
 
         # Show summary
         char_count = len(result)
         click.echo(f"\n✨ Generation complete! ({char_count:,} characters)")
+        click.echo(f"📝 Written to: {output_path}")
 
     except Exception as e:
         click.echo(f"\n❌ Error during generation: {e}", err=True)
@@ -155,7 +158,7 @@ def generate(doc_path: str):
 
     This will:
     1. Look up the outline for docs/api/overview.md in .doc-gen/config.yaml
-    2. Call generate-from-outline with that outline
+    2. Generate to staging area at .doc-gen/staging/<doc-path>
     """
     project_root = find_project_root() or Path.cwd()
 
@@ -177,7 +180,10 @@ def generate(doc_path: str):
         click.echo(f"Error: Outline file not found: {outline_path}", err=True)
         sys.exit(1)
 
-    # Call generate-from-outline
+    # Calculate staging path
+    staging_path = f".doc-gen/staging/{doc_path}"
+
+    # Call generate-from-outline with staging path
     click.echo(f"📄 Using outline: {outline_path.relative_to(project_root)}\n")
 
     # Progress callback
@@ -190,13 +196,16 @@ def generate(doc_path: str):
         progress_callback=progress
     )
 
-    # Generate document
+    # Generate document to staging area
     try:
-        result = generator.generate_from_outline(outline_path)
+        result = generator.generate_from_outline(outline_path, staging_path)
 
         # Show summary
         char_count = len(result)
         click.echo(f"\n✨ Generation complete! ({char_count:,} characters)")
+        click.echo(f"📝 Staged at: {staging_path}")
+        click.echo(f"\n👀 Review with: cat {staging_path}")
+        click.echo(f"✅ Promote with: doc-gen promote {doc_path}")
 
     except Exception as e:
         click.echo(f"\n❌ Error during generation: {e}", err=True)
@@ -209,6 +218,57 @@ def generate(doc_path: str):
         if PromptLogger.is_enabled():
             PromptLogger.close()
             click.echo(f"\nDebug log saved to: {PromptLogger.get_log_path()}", err=True)
+
+
+@cli.command("promote")
+@click.argument("doc_path", type=str)
+def promote(doc_path: str):
+    """Promote a staged document to its final location.
+    
+    DOC_PATH: Documentation file path (e.g., docs/api/overview.md)
+    
+    Example:
+        doc-gen promote docs/api/overview.md
+    """
+    project_root = find_project_root() or Path.cwd()
+    
+    # Build staging path
+    staging_path = project_root / ".doc-gen" / "staging" / doc_path
+    
+    # Check if staged file exists
+    if not staging_path.exists():
+        click.echo(f"❌ Error: No staged file found at: .doc-gen/staging/{doc_path}", err=True)
+        click.echo(f"\nGenerate one first with: doc-gen generate {doc_path}", err=True)
+        sys.exit(1)
+    
+    # Build final path
+    final_path = project_root / doc_path
+    
+    # Create parent directories if needed
+    final_path.parent.mkdir(parents=True, exist_ok=True)
+    
+    # Copy from staging to final location
+    shutil.copy2(staging_path, final_path)
+    
+    click.echo(f"✅ Promoted: {doc_path}")
+    click.echo(f"📝 Written to: {doc_path}")
+    
+    # Remove from staging
+    staging_path.unlink()
+    click.echo(f"🗑️  Removed from staging")
+    
+    # Clean up empty staging directories
+    try:
+        staging_dir = staging_path.parent
+        while staging_dir != project_root / ".doc-gen" / "staging":
+            if not any(staging_dir.iterdir()):
+                staging_dir.rmdir()
+                staging_dir = staging_dir.parent
+            else:
+                break
+    except Exception:
+        # Ignore cleanup errors
+        pass
 
 
 def main():
