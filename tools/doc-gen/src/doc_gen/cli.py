@@ -12,6 +12,7 @@ from .generation import DocumentGenerator, DocumentValidationError
 from .repos import RepoManager
 from .sources import SourceParser, SourceSpecError
 from .validation import SourceValidator, ValidationReport
+from .change_detection import ChangeDetector
 
 
 @click.group()
@@ -393,6 +394,145 @@ def generate_doc(ctx, doc_path: str):
         if ctx.obj.get("debug"):
             raise
         ctx.exit(2)
+
+
+@cli.command()
+@click.argument("doc-path", required=False, type=click.Path())
+@click.option("--all", "check_all", is_flag=True, help="Check all documents")
+@click.pass_context
+def check_changes(ctx, doc_path: str, check_all: bool):
+    """Detect which documents have stale sources.
+    
+    Compares commit hashes in outlines with current repository state.
+    Shows which files changed and their commit messages.
+    
+    Examples:
+      doc-gen check-changes docs/example.md    # Check one doc
+      doc-gen check-changes --all              # Check all docs
+      doc-gen check-changes                    # Same as --all
+    """
+    # Determine which docs to check
+    if doc_path:
+        docs_to_check = [Path(doc_path)]
+    else:
+        # Check all docs with metadata
+        docs_to_check = MetadataManager.find_all_docs()
+        if not docs_to_check:
+            click.echo("No documents found with metadata.")
+            click.echo("Initialize with: doc-gen init <doc-path>")
+            ctx.exit(0)
+    
+    click.echo(f"Checking {len(docs_to_check)} document(s) for changes...\n")
+    
+    docs_with_changes = []
+    docs_up_to_date = []
+    docs_no_outline = []
+    
+    with RepoManager() as repo_mgr:
+        for doc in docs_to_check:
+            status = _check_single_doc(doc, repo_mgr, ctx)
+            
+            if status == "changes":
+                docs_with_changes.append(doc)
+            elif status == "up_to_date":
+                docs_up_to_date.append(doc)
+            else:  # "no_outline"
+                docs_no_outline.append(doc)
+    
+    # Summary
+    click.echo("\n" + "=" * 60)
+    click.echo("Summary:")
+    
+    if docs_with_changes:
+        click.echo(click.style(
+            f"  ⚠  {len(docs_with_changes)} document(s) need regeneration",
+            fg="yellow"
+        ))
+        for doc in docs_with_changes:
+            click.echo(f"     - {doc}")
+    
+    if docs_up_to_date:
+        click.echo(click.style(
+            f"  ✓ {len(docs_up_to_date)} document(s) up-to-date",
+            fg="green"
+        ))
+    
+    if docs_no_outline:
+        click.echo(click.style(
+            f"  ✗ {len(docs_no_outline)} document(s) not yet generated",
+            fg="red"
+        ))
+    
+    if docs_with_changes:
+        click.echo(f"\nRegenerate stale docs with:")
+        click.echo(f"  doc-gen generate-outline <doc-path>")
+        ctx.exit(1)  # Exit 1 = changes found
+    else:
+        ctx.exit(0)  # Exit 0 = all up-to-date
+
+
+def _check_single_doc(doc_path: Path, repo_mgr: RepoManager, ctx) -> str:
+    """Check a single document for changes. Returns status string."""
+    metadata = MetadataManager(str(doc_path))
+    
+    try:
+        # Load outline
+        outline = metadata.read_outline()
+    except FileNotFoundError:
+        click.echo(f"{doc_path}")
+        click.echo(click.style("  ✗ Outline not found (never generated)", fg="red"))
+        click.echo()
+        return "no_outline"
+    
+    try:
+        # Load sources and clone repos
+        source_specs = SourceParser.parse_sources_yaml(metadata.sources_path)
+        
+        # Clone repos
+        repo_paths = {}
+        for spec in source_specs:
+            repo_path = repo_mgr.clone_repo(spec.url)
+            repo_paths[spec.repo_name] = repo_path
+        
+        # Check for changes
+        detector = ChangeDetector()
+        report = detector.check_changes(outline, repo_paths, str(doc_path))
+        
+        # Display results
+        click.echo(f"{doc_path}")
+        
+        if report.needs_regeneration():
+            click.echo(click.style(
+                f"  ⚠  {report.total_changes()} change(s) detected",
+                fg="yellow"
+            ))
+            
+            for change in report.changed_files:
+                click.echo(f"    • {change.file_path}")
+                click.echo(f"      {change.old_hash} → {change.new_hash}")
+                if change.commit_message:
+                    click.echo(f"      \"{change.commit_message}\"")
+            
+            for new_file in report.new_files:
+                click.echo(f"    + {new_file} (new)")
+            
+            for removed_file in report.removed_files:
+                click.echo(f"    - {removed_file} (removed)")
+            
+            click.echo(f"  ✓ {len(report.unchanged_files)} file(s) unchanged")
+            click.echo()
+            return "changes"
+        else:
+            click.echo(click.style("  ✓ All sources unchanged", fg="green"))
+            generated_at = outline.get("_metadata", {}).get("generated_at", "unknown")
+            click.echo(f"    Last generated: {generated_at}")
+            click.echo()
+            return "up_to_date"
+            
+    except Exception as e:
+        click.echo(click.style(f"  ✗ Error: {e}", fg="red"))
+        click.echo()
+        return "no_outline"
 
 
 if __name__ == "__main__":
