@@ -16,6 +16,7 @@ from .change_detection import ChangeDetector
 from .review import DiffGenerator
 from .promotion import DocumentPromoter, PromotionError
 from .orchestration import BatchOrchestrator
+from .errors import handle_errors
 
 
 @click.group()
@@ -47,6 +48,7 @@ def cli(ctx, debug: bool):
 
 @cli.command()
 @click.argument("doc-path", type=click.Path())
+@handle_errors
 def init(doc_path: str):
     """Initialize source specification for a document.
     
@@ -70,6 +72,7 @@ def init(doc_path: str):
 @cli.command()
 @click.argument("doc-path", type=click.Path())
 @click.pass_context
+@handle_errors
 def validate_sources(ctx, doc_path: str):
     """Validate source specifications before generation.
     
@@ -163,6 +166,7 @@ def _display_validation_report(report: ValidationReport):
 @cli.command()
 @click.argument("doc-path", type=click.Path())
 @click.pass_context
+@handle_errors
 def generate_outline(ctx, doc_path: str):
     """Generate outline from source files.
     
@@ -279,6 +283,7 @@ def generate_outline(ctx, doc_path: str):
 @cli.command()
 @click.argument("doc-path", type=click.Path())
 @click.pass_context
+@handle_errors
 def generate_doc(ctx, doc_path: str):
     """Generate markdown document from outline.
     
@@ -403,6 +408,7 @@ def generate_doc(ctx, doc_path: str):
 @click.argument("doc-path", required=False, type=click.Path())
 @click.option("--all", "check_all", is_flag=True, help="Check all documents")
 @click.pass_context
+@handle_errors
 def check_changes(ctx, doc_path: str, check_all: bool):
     """Detect which documents have stale sources.
     
@@ -541,6 +547,7 @@ def _check_single_doc(doc_path: Path, repo_mgr: RepoManager, ctx) -> str:
 @cli.command()
 @click.argument("doc-path", type=click.Path())
 @click.pass_context
+@handle_errors
 def review(ctx, doc_path: str):
     """Review changes between staging and live documentation.
     
@@ -605,6 +612,7 @@ def review(ctx, doc_path: str):
 @cli.command()
 @click.argument("doc-path", type=click.Path())
 @click.pass_context
+@handle_errors
 def promote(ctx, doc_path: str):
     """Promote staging document to live.
     
