@@ -89,6 +89,7 @@ def init():
     """Initialize doc-gen configuration.
 
     Creates .doc-gen/config.yaml with default settings and commented examples.
+    Also creates a sample outline at .doc-gen/examples/sample-outline.json.
     """
     project_root = find_project_root() or Path.cwd()
     config_path = project_root / ".doc-gen" / "config.yaml"
@@ -101,6 +102,83 @@ def init():
     create_default_config(project_root)
     click.echo(f"✓ Created config: {config_path}")
     click.echo(f"✓ Created storage: {project_root / '.doc-gen' / 'amplifier-docs-cache'}")
+    
+    # Create sample outline
+    sample_outline_dir = project_root / ".doc-gen" / "examples"
+    sample_outline_dir.mkdir(parents=True, exist_ok=True)
+    sample_outline_path = sample_outline_dir / "sample-outline.json"
+    
+    sample_outline_content = """{
+  "_meta": {
+    "name": "getting-started-guide",
+    "document_instruction": "Write clear, concise documentation for beginners. Use code examples, bullet points, and practical guidance. Keep the tone friendly and approachable.",
+    "model": "claude-sonnet-4-20250514",
+    "max_response_tokens": 8000,
+    "temperature": 0.2
+  },
+  "document": {
+    "title": "Getting Started with My Project",
+    "output": "docs/getting-started.md",
+    "sections": [
+      {
+        "heading": "# Getting Started",
+        "level": 1,
+        "prompt": "Write a welcoming introduction to the project. Explain what users will learn in this guide and why they should use this project.",
+        "sources": [
+          {
+            "file": "https://github.com/your-org/your-repo/blob/main/README.md",
+            "reasoning": "Contains project overview and key features",
+            "commit": "abc123def456"
+          }
+        ],
+        "sections": [
+          {
+            "heading": "## Installation",
+            "level": 2,
+            "prompt": "Provide step-by-step installation instructions. Show the exact commands users need to run. Include any prerequisites.",
+            "sources": [
+              {
+                "file": "https://github.com/your-org/your-repo/blob/main/README.md",
+                "reasoning": "Contains installation instructions and prerequisites",
+                "commit": "abc123def456"
+              }
+            ],
+            "sections": []
+          },
+          {
+            "heading": "## Quick Start",
+            "level": 2,
+            "prompt": "Walk users through their first task with the project. Show a complete, working example they can copy and paste. Explain what each step does.",
+            "sources": [
+              {
+                "file": "https://github.com/your-org/your-repo/blob/main/examples/hello-world.py",
+                "reasoning": "Contains a simple working example for beginners",
+                "commit": "abc123def456"
+              }
+            ],
+            "sections": []
+          },
+          {
+            "heading": "## Next Steps",
+            "level": 2,
+            "prompt": "Point users to additional resources: tutorials, API documentation, community channels. Keep it brief and actionable.",
+            "sources": [
+              {
+                "file": "https://github.com/your-org/your-repo/blob/main/README.md",
+                "reasoning": "Links to additional documentation and resources",
+                "commit": "abc123def456"
+              }
+            ],
+            "sections": []
+          }
+        ]
+      }
+    ]
+  }
+}"""
+    
+    sample_outline_path.write_text(sample_outline_content)
+    click.echo(f"✓ Created sample outline: {sample_outline_path.relative_to(project_root)}")
 
 
 @cli.command("register-outline")
