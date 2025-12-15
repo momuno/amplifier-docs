@@ -2,8 +2,8 @@
   "_meta": {
     "name": "hooks-api-outline",
     "document_instruction": "Provide concise API reference for HookRegistry methods and HookResult structure with usage examples. Use code, tables, bullets, diagrams, or prose as needed to clearly explain the methods and data structures. Avoid writing lists as prose unless absolutely necessary. If the list is code related, tables often work well.",
-    "model": "claude-3-5-sonnet-20241022",
-    "max_tokens": 8000,
+    "model": "claude-sonnet-4-20250514",
+    "max_response_tokens": 8000,
     "temperature": 0.1
   },
   "document": {

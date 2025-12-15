@@ -58,7 +58,7 @@ class DocumentOutline:
     sections: list[Section]
     # LLM configuration (optional, with defaults)
     model: str = "claude-3-5-sonnet-20241022"
-    max_tokens: int = 8000
+    max_response_tokens: int = 8000
     temperature: float = 0.3
 
     def to_dict(self) -> dict:
@@ -68,7 +68,7 @@ class DocumentOutline:
                 "name": self.name,
                 "document_instruction": self.document_instruction,
                 "model": self.model,
-                "max_tokens": self.max_tokens,
+                "max_response_tokens": self.max_response_tokens,
                 "temperature": self.temperature,
             },
             "document": {
@@ -116,6 +116,6 @@ class DocumentOutline:
             sections=sections,
             # LLM config with defaults if not present
             model=data["_meta"].get("model", "claude-3-5-sonnet-20241022"),
-            max_tokens=data["_meta"].get("max_tokens", 8000),
+            max_response_tokens=data["_meta"].get("max_response_tokens", 8000),
             temperature=data["_meta"].get("temperature", 0.3),
         )

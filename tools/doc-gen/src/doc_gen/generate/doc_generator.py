@@ -399,11 +399,6 @@ DOCUMENT INSTRUCTION
         prompt = f"""You are a technical documentation writer. Generate content for the following section.
 {document_instruction}
 ==============================================================================
-SECTION METADATA
-==============================================================================
-**Section Heading:** {section.heading}
-
-==============================================================================
 YOUR TASK
 ==============================================================================
 
@@ -444,7 +439,7 @@ Generate the content now:"""
             prompt,
             temperature=self.outline.temperature,
             model=self.outline.model,
-            max_tokens=self.outline.max_tokens,
+            max_tokens=self.outline.max_response_tokens,
             location="generate/doc_generator.py:generate_from_outline"
         )
 

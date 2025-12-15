@@ -49,7 +49,7 @@ class ClaudeClient:
             prompt: The prompt to send to Claude
             temperature: Temperature setting (0.0-1.0)
             model: Model to use (overrides default if provided)
-            max_tokens: Maximum tokens to generate (overrides default if provided)
+            max_tokens: Maximum response tokens to generate (overrides default if provided)
             location: Location identifier for debug logging
 
         Returns:
@@ -57,7 +57,7 @@ class ClaudeClient:
         """
         # Use provided values or fall back to defaults
         use_model = model or self.model
-        use_max_tokens = max_tokens or 4096
+        use_max_response_tokens = max_tokens or 4096
 
         # Log request if debug mode enabled
         if PromptLogger.is_enabled():
@@ -65,14 +65,14 @@ class ClaudeClient:
                 model=use_model,
                 prompt=prompt,
                 temperature=temperature,
-                max_tokens=use_max_tokens,
+                max_tokens=use_max_response_tokens,
                 location=location
             )
 
         # Make API call
         message = self.client.messages.create(
             model=use_model,
-            max_tokens=use_max_tokens,
+            max_tokens=use_max_response_tokens,
             temperature=temperature,
             messages=[{"role": "user", "content": prompt}]
         )
@@ -84,7 +84,7 @@ class ClaudeClient:
                 model=use_model,
                 prompt=prompt,
                 temperature=temperature,
-                max_tokens=use_max_tokens,
+                max_tokens=use_max_response_tokens,
                 location=location,
                 response=response
             )

@@ -75,6 +75,20 @@ class PromptLogger:
         return cls._log_path
 
     @classmethod
+    def _estimate_tokens(cls, text: str) -> int:
+        """Estimate token count from character length.
+
+        Uses rough approximation: 1 token ≈ 4 characters
+
+        Args:
+            text: Text to estimate tokens for
+
+        Returns:
+            Estimated token count
+        """
+        return len(text) // 4
+
+    @classmethod
     def log_api_call(
         cls,
         model: str,
@@ -93,7 +107,7 @@ class PromptLogger:
             temperature: Temperature setting
             location: Where in code this was called (e.g., "outline_generator.py:242")
             response: Full response text (optional, log before/after)
-            max_tokens: Max tokens setting
+            max_tokens: Max response tokens setting
             **kwargs: Additional metadata to log
         """
         if not cls._enabled or cls._log_file is None:
@@ -105,15 +119,17 @@ class PromptLogger:
             "temperature": temperature,
             "location": location,
             "prompt": prompt,
-            "prompt_length": len(prompt),
+            "prompt_length_chars": len(prompt),
+            "prompt_length_tokens_est": cls._estimate_tokens(prompt),
         }
 
         if max_tokens is not None:
-            log_entry["max_tokens"] = max_tokens
+            log_entry["max_response_tokens"] = max_tokens
 
         if response is not None:
             log_entry["response"] = response
-            log_entry["response_length"] = len(response)
+            log_entry["response_length_chars"] = len(response)
+            log_entry["response_length_tokens_est"] = cls._estimate_tokens(response)
 
         # Add any additional metadata
         log_entry.update(kwargs)
