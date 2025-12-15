@@ -94,21 +94,31 @@ def init():
     project_root = find_project_root() or Path.cwd()
     config_path = project_root / ".doc-gen" / "config.yaml"
 
-    if config_path.exists():
+    # Handle config creation
+    config_exists = config_path.exists()
+    if config_exists:
         click.echo(f"Config already exists: {config_path}")
-        if not click.confirm("Overwrite?"):
-            sys.exit(0)
-
-    create_default_config(project_root)
-    click.echo(f"✓ Created config: {config_path}")
-    click.echo(f"✓ Created storage: {project_root / '.doc-gen' / 'amplifier-docs-cache'}")
+        if click.confirm("Overwrite?"):
+            create_default_config(project_root)
+            click.echo(f"✓ Created config: {config_path}")
+            click.echo(f"✓ Created storage: {project_root / '.doc-gen' / 'amplifier-docs-cache'}")
+        else:
+            click.echo(f"✓ Keeping existing config: {config_path}")
+    else:
+        create_default_config(project_root)
+        click.echo(f"✓ Created config: {config_path}")
+        click.echo(f"✓ Created storage: {project_root / '.doc-gen' / 'amplifier-docs-cache'}")
     
-    # Create sample outline
+    # Create sample outline (independently of config creation)
     sample_outline_dir = project_root / ".doc-gen" / "examples"
     sample_outline_dir.mkdir(parents=True, exist_ok=True)
     sample_outline_path = sample_outline_dir / "sample-outline.json"
     
-    sample_outline_content = """{
+    # Check if sample outline already exists
+    if sample_outline_path.exists():
+        click.echo(f"\n✓ Sample outline already exists: {sample_outline_path.relative_to(project_root)}")
+    else:
+        sample_outline_content = """{
   "_meta": {
     "name": "getting-started-guide",
     "document_instruction": "Write clear, concise documentation for beginners. Use code examples, bullet points, and practical guidance. Keep the tone friendly and approachable.",
@@ -176,9 +186,9 @@ def init():
     ]
   }
 }"""
-    
-    sample_outline_path.write_text(sample_outline_content)
-    click.echo(f"✓ Created sample outline: {sample_outline_path.relative_to(project_root)}")
+        
+        sample_outline_path.write_text(sample_outline_content)
+        click.echo(f"✓ Created sample outline: {sample_outline_path.relative_to(project_root)}")
 
 
 @cli.command("register-outline")

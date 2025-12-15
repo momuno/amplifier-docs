@@ -33,9 +33,9 @@ tools/doc-gen/doc-gen init
 ```
 
 This creates:
-- `.doc-gen/config.yaml` - Configuration and outline registry
-- `.doc-gen/amplifier-docs-cache/` - Storage for registered outlines
-- `.doc-gen/examples/sample-outline.json` - Sample outline to get started
+- `.doc-gen/config.yaml` - Configuration and outline registry if does not exist
+- `.doc-gen/amplifier-docs-cache/` - Storage for registered outlines, if does not exist
+- `.doc-gen/examples/sample-outline.json` - Sample outline to for reference, if does not exist
 
 ### 2. Set Up API Key
 
@@ -54,12 +54,23 @@ echo "sk-ant-api03-..." > ~/.claude/api_key.txt
 
 ### 3. Try the Sample
 
-Generate documentation from the included outline:
+Generate official documentation from the pre-registered outline:
 
 ```bash
 tools/doc-gen/doc-gen generate ./docs/api/core/hooks.md
 ```
-You will see logging demonstrating the progress of generation. A new hooks.md file will be placed under the .doc-gen/staging/
+You will see logging on generation progress. A new `hooks.md` file will be placed under `.doc-gen/staging/`
+
+### 4. Your Turn
+
+Create your own outline to iterate upon. 
+
+Ask Amplifier to generate one for you using reference outlines as examples, or copy an existing outline.  Edit and generate.
+
+```bash
+tools/doc-gen/doc-gen generate-from-outline <OUTLINE_PATH> <OUTPUT_PATH> 
+```
+*Note:* This command requires an outline path and output path, and does not require the outline to be registered.  To run `generate` on this new outline, please see the `register-outline` command below.
 
 ## Commands
 
