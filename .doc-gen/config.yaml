@@ -1,4 +1,6 @@
 outline_storage: .doc-gen/amplifier-docs-cache
 outlines:
   ./docs/api/core/hooks.md: .-docs-api-core-hooks/hooks_outline.json
-
+  ./docs/api/core/coordinator.md: .-docs-api-core-coordinator/coordinator_outline.json
+  ./docs/architecture/kernel.md: .-docs-architecture-kernel/kernel_outline.json
+  ./docs/developer/contracts/hook.md: .-docs-developer-contracts-hook/hook_outline.json
