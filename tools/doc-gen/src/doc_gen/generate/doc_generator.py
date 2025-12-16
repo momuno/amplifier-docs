@@ -303,16 +303,13 @@ class DocumentGenerator:
                     headings.extend(collect_all_subsection_headings(s.sections, depth + 1))
             return headings
 
-        # Always show subsection constraints (even if no subsections)
+        # Build subsection content (no heavy headers)
         if section.sections:
             all_subsection_headings = collect_all_subsection_headings(section.sections)
             subsection_count = len(all_subsection_headings)
 
-            subsection_guidance = f"""
-
-==============================================================================
-CRITICAL: EXACT SUBSECTION STRUCTURE - NO DEVIATIONS ALLOWED
-==============================================================================
+            subsection_content = f"""
+SUBSECTION STRUCTURE - NO DEVIATIONS ALLOWED:
 
 The section "{section.heading}" has EXACTLY {subsection_count} subsection(s) defined in the outline.
 These are THE ONLY subsections that will exist. They are shown below with full hierarchy:
@@ -333,15 +330,10 @@ YOUR OUTPUT MUST CONTAIN:
   ✓ Plain text, tables, code blocks, lists - but NO headings
 
 The {subsection_count} subsection(s) above will appear AFTER your content in the exact order shown.
-
-==============================================================================
 """
         else:
-            subsection_guidance = f"""
-
-==============================================================================
-CRITICAL: NO SUBSECTIONS FOR THIS SECTION
-==============================================================================
+            subsection_content = f"""
+NO SUBSECTIONS FOR THIS SECTION:
 
 The section "{section.heading}" has NO subsections defined in the outline.
 
@@ -354,27 +346,21 @@ YOUR OUTPUT MUST CONTAIN:
   ✓ ONLY content for "{section.heading}" itself
   ✓ NO markdown headings of any kind
   ✓ Plain text, tables, code blocks, lists - but NO headings
-
-==============================================================================
 """
 
-        # Build context section with clear boundaries
-        context_section = ""
+        # Build context content (no heavy headers)
         if document_so_far:
-            context_section = f"""
-
-==============================================================================
-PREVIOUSLY WRITTEN CONTENT (for context and continuity)
-==============================================================================
-
+            context_content = f"""
 {document_so_far}
 
 ==============================================================================
 END OF PREVIOUSLY WRITTEN CONTENT
 ==============================================================================
-
-CRITICAL Guidelines for Using Previous Content:
-- The content above is PROVIDED FOR CONTEXT ONLY
+"""
+            # Guidelines for using previous content (will be in CRITICAL GUIDELINES)
+            context_usage_guidelines = """
+USING PREVIOUS CONTENT:
+- The previously written content above is PROVIDED FOR CONTEXT ONLY
 - DO NOT duplicate or restate information already covered
 - DO NOT copy content from earlier sections
 - DO NOT repeat prerequisites, installation steps, or concepts already explained
@@ -383,43 +369,54 @@ CRITICAL Guidelines for Using Previous Content:
 - Ensure this section flows naturally from what came before
 """
         else:
-            context_section = "\n(This is the first section - no previous content exists yet.)\n"
+            context_content = "(This is the first section - no previous content exists yet.)"
+            context_usage_guidelines = ""
 
-        # Build document instruction context
-        document_instruction = ""
+        # Build document instruction content (no heavy headers)
+        document_instruction_content = ""
         if hasattr(self, 'outline') and self.outline.document_instruction:
-            document_instruction = f"""
-==============================================================================
-DOCUMENT INSTRUCTION
-==============================================================================
-{self.outline.document_instruction}
+            document_instruction_content = self.outline.document_instruction
 
-"""
-
-        prompt = f"""You are a technical documentation writer. Generate content for the following section.
-{document_instruction}
-==============================================================================
-YOUR TASK
-==============================================================================
-
-{section.prompt}
+        # Build the complete prompt with proper structure
+        prompt = f"""You are a technical documentation writer, who excels at writing sections of a full document one at a time. Source material to reference will be provided to you next. This will include the url filepath, reasoning for why this file is relevant to the section you are to write, and the full content of the file. There may be more than one file. Then you will be provided previously written content in the document so far for context. Following this will be CRITICAL guidelines you MUST follow. If you do NOT follow these CRITICAL guidelines, you will fail at your job. Finally, you will be provided the Document Instruction, the more specific Section instruction, and general output instructions.
 
 ==============================================================================
 SOURCE MATERIALS (reference these for accurate information)
 ==============================================================================
 
 {source_content}
-{context_section}{subsection_guidance}
 
 ==============================================================================
-IMPORTANT: EXCLUDE DEPRECATED CODE
+PREVIOUSLY WRITTEN CONTENT (for context and continuity)
 ==============================================================================
 
+{context_content}
+
+==============================================================================
+CRITICAL GUIDELINES - YOU MUST FOLLOW THESE OR YOU WILL FAIL
+==============================================================================
+
+EXCLUDE DEPRECATED CODE:
 - DO NOT document any code, features, or commands marked as DEPRECATED
 - DO NOT document any code with comments indicating it's outdated or replaced
 - If you discover deprecated code in source files, IGNORE IT completely
 - Only document current, active, non-deprecated functionality
 - If a feature has been superseded by a newer approach, document ONLY the new approach
+
+{context_usage_guidelines}
+{subsection_content}
+
+==============================================================================
+DOCUMENT INSTRUCTION
+==============================================================================
+
+{document_instruction_content}
+
+==============================================================================
+YOUR TASK - SECTION INSTRUCTION
+==============================================================================
+
+{section.prompt}
 
 ==============================================================================
 OUTPUT INSTRUCTIONS
