@@ -283,7 +283,7 @@
                   {
                     "heading": "#### Multi-Module Access",
                     "level": 4,
-                    "prompt": "Show an example of accessing other mounted modules for integration. Include get() usage, None checking, and using other modules in hook handlers. Keep it under 25 lines. Explain the pattern.",
+                    "prompt": "Show an example of accessing other mounted modules for integration. Include get() usage, None checking, and using other modules in hook handlers. Keep it under 20 lines. Explain the pattern.",
                     "sources": [
                       {
                         "file": "https://github.com/microsoft/amplifier-core/blob/main/amplifier_core/coordinator.py",
@@ -296,7 +296,7 @@
                   {
                     "heading": "#### Capability Registration",
                     "level": 4,
-                    "prompt": "Show an example of registering capabilities for agent spawning (list_agents, get_agent_config, spawn_agent functions). Include child session creation. Keep it under 40 lines. Explain the pattern.",
+                    "prompt": "Show an example of registering capabilities for agent spawning (list_agents, get_agent_config, spawn_agent functions). Include child session creation. Keep it under 20 lines. Explain the pattern.",
                     "sources": [
                       {
                         "file": "https://github.com/microsoft/amplifier-core/blob/main/amplifier_core/coordinator.py",
@@ -314,7 +314,7 @@
                   {
                     "heading": "#### Hook Result Processing",
                     "level": 4,
-                    "prompt": "Show an orchestrator pattern example for hook result processing. Include emit, process_hook_result, handling deny/modify actions, and processing pre/post hooks. Keep it under 40 lines. Explain the pattern.",
+                    "prompt": "Show an orchestrator pattern example for hook result processing. Include emit, process_hook_result, handling deny/modify actions, and processing pre/post hooks. Keep it under 20 lines. Explain the pattern.",
                     "sources": [
                       {
                         "file": "https://github.com/microsoft/amplifier-core/blob/main/amplifier_core/coordinator.py",
@@ -327,7 +327,7 @@
                   {
                     "heading": "#### Contribution Channel",
                     "level": 4,
-                    "prompt": "Show examples of using contribution channels: registering a contributor and collecting contributions from all modules. Keep it under 30 lines total. Explain the pattern.",
+                    "prompt": "Show examples of using contribution channels: registering a contributor and collecting contributions from all modules. Keep it under 20 lines total. Explain the pattern.",
                     "sources": [
                       {
                         "file": "https://github.com/microsoft/amplifier-core/blob/main/amplifier_core/coordinator.py",
