@@ -1,0 +1,424 @@
+{
+  "_meta": {
+    "name": "coordinator-api-outline",
+    "document_instruction": "Provide concise API reference for amplifier-core coordinator with usage examples. Use code, tables, bullets, diagrams, or prose as needed to clearly explain the methods and data structures. Avoid writing lists as prose unless absolutely necessary. If the list is code related, tables often work well.",
+    "model": "claude-sonnet-4-20250514",
+    "max_response_tokens": 8000,
+    "temperature": 0.0
+  },
+  "document": {
+    "title": "# Coordinator API",
+    "output": "docs/api/core/coordinator.md",
+    "sections": [
+      {
+        "heading": "# Coordinator API",
+        "level": 1,
+        "prompt": "Provide a concise high-level introduction for the Coordinator API. State what the core component is (ModuleCoordinator) and key capabilities. Do not provide details about usage patterns, the architecture, or anything else. These details will be covered in later sections.",
+        "sources": [
+          {
+            "file": "https://github.com/microsoft/amplifier-core/blob/main/amplifier_core/coordinator.py",
+            "reasoning": "Contains the ModuleCoordinator class with comprehensive docstring explaining its purpose.",
+            "commit": "e0ad0bc85d43233483fc1ce15051436c474a3042"
+          },
+          {
+            "file": "https://github.com/microsoft/amplifier-core/blob/main/README.md",
+            "reasoning": "Provides architecture overview showing coordinator's role in the kernel and its relationship to modules.",
+            "commit": "e0ad0bc85d43233483fc1ce15051436c474a3042"
+          }
+        ],
+        "sections": [
+          {
+            "heading": "## ModuleCoordinator",
+            "level": 2,
+            "prompt": "Provide a concise high-level introduction for the ModuleCoordinator class. Do not go into details on anything. Include source link.",
+            "sources": [
+              {
+                "file": "https://github.com/microsoft/amplifier-core/blob/main/amplifier_core/coordinator.py",
+                "reasoning": "Defines the ModuleCoordinator class with docstring explaining its purpose and operational characteristics. Shows __init__ accepting approval_system and display_system parameters.",
+                "commit": "e0ad0bc85d43233483fc1ce15051436c474a3042"
+              }
+            ],
+            "sections": [
+              {
+                "heading": "### Properties",
+                "level": 3,
+                "prompt": "Provide a brief introduction to the ModuleCoordinator properties section. List all available properties in a table.",
+                "sources": [
+                  {
+                    "file": "https://github.com/microsoft/amplifier-core/blob/main/amplifier_core/coordinator.py",
+                    "reasoning": "Contains all property definitions for ModuleCoordinator.",
+                    "commit": "e0ad0bc85d43233483fc1ce15051436c474a3042"
+                  }
+                ],
+                "sections": []
+              },
+              {
+                "heading": "### Methods",
+                "level": 3,
+                "prompt": "Provide a brief introduction to the ModuleCoordinator methods section. List all available methods.",
+                "sources": [
+                  {
+                    "file": "https://github.com/microsoft/amplifier-core/blob/main/amplifier_core/coordinator.py",
+                    "reasoning": "Contains all method implementations for ModuleCoordinator.",
+                    "commit": "e0ad0bc85d43233483fc1ce15051436c474a3042"
+                  }
+                ],
+                "sections": [
+                  {
+                    "heading": "#### mount",
+                    "level": 4,
+                    "prompt": "Document the mount() method including all parameters and return value. Include code example under 15 lines. Explain the Execution Behavior.",
+                    "sources": [
+                      {
+                        "file": "https://github.com/microsoft/amplifier-core/blob/main/amplifier_core/coordinator.py",
+                        "reasoning": "Contains the mount() method implementation with parameter documentation and mount point behavior logic.",
+                        "commit": "e0ad0bc85d43233483fc1ce15051436c474a3042"
+                      }
+                    ],
+                    "sections": []
+                  },
+                  {
+                    "heading": "#### unmount",
+                    "level": 4,
+                    "prompt": "Document the unmount() method including all parameters and return value. Include code example under 15 lines. Explain the Execution Behavior.",
+                    "sources": [
+                      {
+                        "file": "https://github.com/microsoft/amplifier-core/blob/main/amplifier_core/coordinator.py",
+                        "reasoning": "Contains the unmount() method for removing modules from mount points.",
+                        "commit": "e0ad0bc85d43233483fc1ce15051436c474a3042"
+                      }
+                    ],
+                    "sections": []
+                  },
+                  {
+                    "heading": "#### get",
+                    "level": 4,
+                    "prompt": "Document the get() method including all parameters and return value. Include code example under 15 lines. Explain the Execution Behavior.",
+                    "sources": [
+                      {
+                        "file": "https://github.com/microsoft/amplifier-core/blob/main/amplifier_core/coordinator.py",
+                        "reasoning": "Contains the get() method implementation for retrieving mounted modules.",
+                        "commit": "e0ad0bc85d43233483fc1ce15051436c474a3042"
+                      }
+                    ],
+                    "sections": []
+                  },
+                  {
+                    "heading": "#### register_cleanup",
+                    "level": 4,
+                    "prompt": "Document the register_cleanup() method including parameter and return value. Include code example under 15 lines. Explain the Execution Behavior.",
+                    "sources": [
+                      {
+                        "file": "https://github.com/microsoft/amplifier-core/blob/main/amplifier_core/coordinator.py",
+                        "reasoning": "Defines register_cleanup() for registering cleanup functions. Shows cleanup() execution with LIFO order and error handling.",
+                        "commit": "e0ad0bc85d43233483fc1ce15051436c474a3042"
+                      }
+                    ],
+                    "sections": []
+                  },
+                  {
+                    "heading": "#### register_capability",
+                    "level": 4,
+                    "prompt": "Document the register_capability() method including all parameters and return value. Include code example under 15 lines. Explain the Execution Behavior.",
+                    "sources": [
+                      {
+                        "file": "https://github.com/microsoft/amplifier-core/blob/main/amplifier_core/coordinator.py",
+                        "reasoning": "Contains the register_capability() method for inter-module communication via capability registry.",
+                        "commit": "e0ad0bc85d43233483fc1ce15051436c474a3042"
+                      }
+                    ],
+                    "sections": []
+                  },
+                  {
+                    "heading": "#### get_capability",
+                    "level": 4,
+                    "prompt": "Document the get_capability() method including parameter and return value. Include code example under 15 lines. Explain the Execution Behavior.",
+                    "sources": [
+                      {
+                        "file": "https://github.com/microsoft/amplifier-core/blob/main/amplifier_core/coordinator.py",
+                        "reasoning": "Contains the get_capability() method for retrieving registered capabilities with None handling.",
+                        "commit": "e0ad0bc85d43233483fc1ce15051436c474a3042"
+                      }
+                    ],
+                    "sections": []
+                  },
+                  {
+                    "heading": "#### register_contributor",
+                    "level": 4,
+                    "prompt": "Document the register_contributor() method including all parameters and return value. Include code example under 15 lines. Explain the Execution Behavior.",
+                    "sources": [
+                      {
+                        "file": "https://github.com/microsoft/amplifier-core/blob/main/amplifier_core/coordinator.py",
+                        "reasoning": "Contains the register_contributor() method for contribution channel aggregation mechanism.",
+                        "commit": "e0ad0bc85d43233483fc1ce15051436c474a3042"
+                      },
+                      {
+                        "file": "https://github.com/microsoft/amplifier-core/blob/main/docs/specs/CONTRIBUTION_CHANNELS.md",
+                        "reasoning": "Canonical specification for contribution channels including pull-based aggregation, channel naming conventions, and failure handling patterns.",
+                        "commit": "e0ad0bc85d43233483fc1ce15051436c474a3042"
+                      }
+                    ],
+                    "sections": []
+                  },
+                  {
+                    "heading": "#### collect_contributions",
+                    "level": 4,
+                    "prompt": "Document the collect_contributions() method including all parameters and return value. Include code example under 15 lines. Explain the Execution Behavior.",
+                    "sources": [
+                      {
+                        "file": "https://github.com/microsoft/amplifier-core/blob/main/amplifier_core/coordinator.py",
+                        "reasoning": "Contains the collect_contributions() method that calls registered contributor callbacks and returns aggregated results.",
+                        "commit": "e0ad0bc85d43233483fc1ce15051436c474a3042"
+                      },
+                      {
+                        "file": "https://github.com/microsoft/amplifier-core/blob/main/docs/specs/CONTRIBUTION_CHANNELS.md",
+                        "reasoning": "Specification explaining contribution collection patterns, ordering guarantees, and failure handling.",
+                        "commit": "e0ad0bc85d43233483fc1ce15051436c474a3042"
+                      }
+                    ],
+                    "sections": []
+                  },
+                  {
+                    "heading": "#### process_hook_result",
+                    "level": 4,
+                    "prompt": "Document the process_hook_result() method including all parameters and return value. Include code example under 15 lines. Explain the Execution Behavior.",
+                    "sources": [
+                      {
+                        "file": "https://github.com/microsoft/amplifier-core/blob/main/amplifier_core/coordinator.py",
+                        "reasoning": "Contains the process_hook_result() method that routes HookResult actions to appropriate subsystems (context injection, approvals, user messages).",
+                        "commit": "e0ad0bc85d43233483fc1ce15051436c474a3042"
+                      },
+                      {
+                        "file": "https://github.com/microsoft/amplifier-core/blob/main/amplifier_core/models.py",
+                        "reasoning": "Defines HookResult structure with all action types and fields.",
+                        "commit": "e0ad0bc85d43233483fc1ce15051436c474a3042"
+                      }
+                    ],
+                    "sections": []
+                  },
+                  {
+                    "heading": "#### cleanup",
+                    "level": 4,
+                    "prompt": "Document the cleanup() method including all parameters and return value. Include code example under 15 lines. Explain the Execution Behavior.",
+                    "sources": [
+                      {
+                        "file": "https://github.com/microsoft/amplifier-core/blob/main/amplifier_core/coordinator.py",
+                        "reasoning": "Contains the cleanup() method that executes all registered cleanup functions in reverse order.",
+                        "commit": "e0ad0bc85d43233483fc1ce15051436c474a3042"
+                      }
+                    ],
+                    "sections": []
+                  },
+                  {
+                    "heading": "#### reset_turn",
+                    "level": 4,
+                    "prompt": "Document the reset_turn() method including all parameters and return value. Include code example under 15 lines. Explain the Execution Behavior.",
+                    "sources": [
+                      {
+                        "file": "https://github.com/microsoft/amplifier-core/blob/main/amplifier_core/coordinator.py",
+                        "reasoning": "Defines reset_turn() for resetting per-turn tracking counters used in injection budget enforcement.",
+                        "commit": "e0ad0bc85d43233483fc1ce15051436c474a3042"
+                      }
+                    ],
+                    "sections": []
+                  }
+                ]
+              },
+              {
+                "heading": "### Hook Result Processing",
+                "level": 3,
+                "prompt": "Document the coordinator's specialized processing for HookResult actions. Show Processing Pipeline example. Create Subsystem Routing table.",
+                "sources": [
+                  {
+                    "file": "https://github.com/microsoft/amplifier-core/blob/main/amplifier_core/coordinator.py",
+                    "reasoning": "Contains the _handle_context_injection, _handle_approval_request, and _handle_user_message methods showing subsystem routing logic.",
+                    "commit": "e0ad0bc85d43233483fc1ce15051436c474a3042"
+                  },
+                  {
+                    "file": "https://github.com/microsoft/amplifier-core/blob/main/amplifier_core/models.py",
+                    "reasoning": "Defines HookResult with context_injection, approval_prompt, user_message, ephemeral, and other fields.",
+                    "commit": "e0ad0bc85d43233483fc1ce15051436c474a3042"
+                  }
+                ],
+                "sections": []
+              },
+              {
+                "heading": "### Capability System",
+                "level": 3,
+                "prompt": "Document the coordinator's capability registry for inter-module communication. Show Capability Pattern with provider and consumer examples. Create Common Capability Patterns table.",
+                "sources": [
+                  {
+                    "file": "https://github.com/microsoft/amplifier-core/blob/main/amplifier_core/coordinator.py",
+                    "reasoning": "Implements the capability registry system with register_capability and get_capability methods.",
+                    "commit": "e0ad0bc85d43233483fc1ce15051436c474a3042"
+                  }
+                ],
+                "sections": []
+              },
+              {
+                "heading": "### Examples",
+                "level": 3,
+                "prompt": "Provide a concise high-level introduction for the examples section.",
+                "sources": [
+                  {
+                    "file": "https://github.com/microsoft/amplifier-core/blob/main/amplifier_core/coordinator.py",
+                    "reasoning": "Full source provides context for all coordinator usage patterns and module development workflows.",
+                    "commit": "e0ad0bc85d43233483fc1ce15051436c474a3042"
+                  }
+                ],
+                "sections": [
+                  {
+                    "heading": "#### Basic Module Mounting",
+                    "level": 4,
+                    "prompt": "Show a complete example of basic module mounting pattern: create instance, access infrastructure context, mount module, register cleanup. Keep it under 20 lines. Explain the pattern.",
+                    "sources": [
+                      {
+                        "file": "https://github.com/microsoft/amplifier-core/blob/main/amplifier_core/coordinator.py",
+                        "reasoning": "Mount method and typical module mounting workflow.",
+                        "commit": "e0ad0bc85d43233483fc1ce15051436c474a3042"
+                      }
+                    ],
+                    "sections": []
+                  },
+                  {
+                    "heading": "#### Multi-Module Access",
+                    "level": 4,
+                    "prompt": "Show an example of accessing other mounted modules for integration. Include get() usage, None checking, and using other modules in hook handlers. Keep it under 25 lines. Explain the pattern.",
+                    "sources": [
+                      {
+                        "file": "https://github.com/microsoft/amplifier-core/blob/main/amplifier_core/coordinator.py",
+                        "reasoning": "Get method showing access patterns for discovering and using other modules.",
+                        "commit": "e0ad0bc85d43233483fc1ce15051436c474a3042"
+                      }
+                    ],
+                    "sections": []
+                  },
+                  {
+                    "heading": "#### Capability Registration",
+                    "level": 4,
+                    "prompt": "Show an example of registering capabilities for agent spawning (list_agents, get_agent_config, spawn_agent functions). Include child session creation. Keep it under 40 lines. Explain the pattern.",
+                    "sources": [
+                      {
+                        "file": "https://github.com/microsoft/amplifier-core/blob/main/amplifier_core/coordinator.py",
+                        "reasoning": "Capability registration system and session reference for child session spawning.",
+                        "commit": "e0ad0bc85d43233483fc1ce15051436c474a3042"
+                      },
+                      {
+                        "file": "https://github.com/microsoft/amplifier-core/blob/main/amplifier_core/session.py",
+                        "reasoning": "Shows AmplifierSession creation and config merging for child sessions.",
+                        "commit": "e0ad0bc85d43233483fc1ce15051436c474a3042"
+                      }
+                    ],
+                    "sections": []
+                  },
+                  {
+                    "heading": "#### Hook Result Processing",
+                    "level": 4,
+                    "prompt": "Show an orchestrator pattern example for hook result processing. Include emit, process_hook_result, handling deny/modify actions, and processing pre/post hooks. Keep it under 40 lines. Explain the pattern.",
+                    "sources": [
+                      {
+                        "file": "https://github.com/microsoft/amplifier-core/blob/main/amplifier_core/coordinator.py",
+                        "reasoning": "process_hook_result method and typical orchestrator workflow with hooks.",
+                        "commit": "e0ad0bc85d43233483fc1ce15051436c474a3042"
+                      }
+                    ],
+                    "sections": []
+                  },
+                  {
+                    "heading": "#### Contribution Channel",
+                    "level": 4,
+                    "prompt": "Show examples of using contribution channels: registering a contributor and collecting contributions from all modules. Keep it under 30 lines total. Explain the pattern.",
+                    "sources": [
+                      {
+                        "file": "https://github.com/microsoft/amplifier-core/blob/main/amplifier_core/coordinator.py",
+                        "reasoning": "register_contributor and collect_contributions methods showing aggregation mechanism.",
+                        "commit": "e0ad0bc85d43233483fc1ce15051436c474a3042"
+                      }
+                    ],
+                    "sections": []
+                  },
+                  {
+                    "heading": "#### Child Session Spawning",
+                    "level": 4,
+                    "prompt": "Show a complete example of spawning a child session for delegation. Include accessing parent session, merging configs, creating child with parent_id, and execution. Keep it under 20 lines. Explain the pattern.",
+                    "sources": [
+                      {
+                        "file": "https://github.com/microsoft/amplifier-core/blob/main/amplifier_core/coordinator.py",
+                        "reasoning": "Session property providing access to parent AmplifierSession for child session creation.",
+                        "commit": "e0ad0bc85d43233483fc1ce15051436c474a3042"
+                      },
+                      {
+                        "file": "https://github.com/microsoft/amplifier-core/blob/main/amplifier_core/session.py",
+                        "reasoning": "AmplifierSession initialization with parent_id for lineage tracking and config merging.",
+                        "commit": "e0ad0bc85d43233483fc1ce15051436c474a3042"
+                      }
+                    ],
+                    "sections": []
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "heading": "## See Also",
+            "level": 2,
+            "prompt": "Provide a concise 'See Also' section with links to related documentation and resources. Format as a bulleted list with brief descriptions. Include references to: Session API, Hooks API, Module Contracts, Capability Registry, Contribution Channels, Mount Plan Specification, Session Fork Specification, Module Source Protocol, Event Taxonomy, and Design Philosophy.",
+            "sources": [
+              {
+                "file": "https://github.com/microsoft/amplifier-core/blob/main/amplifier_core/session.py",
+                "reasoning": "Session API that creates and manages coordinator.",
+                "commit": "e0ad0bc85d43233483fc1ce15051436c474a3042"
+              },
+              {
+                "file": "https://github.com/microsoft/amplifier-core/blob/main/amplifier_core/hooks.py",
+                "reasoning": "Hook system that coordinator processes and coordinates.",
+                "commit": "e0ad0bc85d43233483fc1ce15051436c474a3042"
+              },
+              {
+                "file": "https://github.com/microsoft/amplifier-core/blob/main/amplifier_core/interfaces.py",
+                "reasoning": "Protocol definitions for all module types.",
+                "commit": "e0ad0bc85d43233483fc1ce15051436c474a3042"
+              },
+              {
+                "file": "https://github.com/microsoft/amplifier-core/blob/main/docs/CAPABILITY_REGISTRY.md",
+                "reasoning": "Complete patterns and standard capabilities for module communication via capability registry.",
+                "commit": "e0ad0bc85d43233483fc1ce15051436c474a3042"
+              },
+              {
+                "file": "https://github.com/microsoft/amplifier-core/blob/main/docs/specs/CONTRIBUTION_CHANNELS.md",
+                "reasoning": "Specification for channel semantics, naming conventions, and aggregation patterns.",
+                "commit": "e0ad0bc85d43233483fc1ce15051436c474a3042"
+              },
+              {
+                "file": "https://github.com/microsoft/amplifier-core/blob/main/docs/specs/MOUNT_PLAN_SPECIFICATION.md",
+                "reasoning": "Configuration format for session initialization.",
+                "commit": "e0ad0bc85d43233483fc1ce15051436c474a3042"
+              },
+              {
+                "file": "https://github.com/microsoft/amplifier-core/blob/main/docs/SESSION_FORK_SPECIFICATION.md",
+                "reasoning": "Child session creation and lineage tracking.",
+                "commit": "e0ad0bc85d43233483fc1ce15051436c474a3042"
+              },
+              {
+                "file": "https://github.com/microsoft/amplifier-core/blob/main/docs/MODULE_SOURCE_PROTOCOL.md",
+                "reasoning": "Custom module loading strategies and source resolution.",
+                "commit": "e0ad0bc85d43233483fc1ce15051436c474a3042"
+              },
+              {
+                "file": "https://github.com/microsoft/amplifier-core/blob/main/amplifier_core/events.py",
+                "reasoning": "Canonical event taxonomy including SESSION_FORK and all standard event names.",
+                "commit": "e0ad0bc85d43233483fc1ce15051436c474a3042"
+              },
+              {
+                "file": "https://github.com/microsoft/amplifier-core/blob/main/docs/DESIGN_PHILOSOPHY.md",
+                "reasoning": "Kernel principles of mechanism vs policy.",
+                "commit": "e0ad0bc85d43233483fc1ce15051436c474a3042"
+              }
+            ],
+            "sections": []
+          }
+        ]
+      }
+    ]
+  }
+}
