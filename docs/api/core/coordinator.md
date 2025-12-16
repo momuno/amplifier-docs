@@ -811,6 +811,8 @@ class FlexibleOrchestrator:
 
 **Common Capability Patterns:**
 
+> **Note:** These are example patterns to illustrate the capability registry system. Actual capability names are defined by your application based on the services and functionality your modules provide.
+
 | Pattern | Naming Convention | Example Capabilities | Use Case |
 |---------|------------------|---------------------|----------|
 | **Service Interface** | `service.action` | `agents.spawn`, `memory.store`, `tools.execute` | Core module functionality |
