@@ -14,6 +14,21 @@ nav:
   - Developer Guides:
       - Foundation:
           - developer_guides/foundation/index.md
+          - amplifier-foundation Library:
+              - developer_guides/foundation/amplifier_foundation/index.md
+              - Getting Started: developer_guides/foundation/amplifier_foundation/getting_started.md
+              - Core Concepts: developer_guides/foundation/amplifier_foundation/concepts.md
+              - Bundle System: developer_guides/foundation/amplifier_foundation/bundle_system.md
+              - Utilities: developer_guides/foundation/amplifier_foundation/utilities.md
+              - Patterns: developer_guides/foundation/amplifier_foundation/patterns.md
+              - Examples:
+                  - developer_guides/foundation/amplifier_foundation/examples/index.md
+                  - Hello World: developer_guides/foundation/amplifier_foundation/examples/hello_world.md
+                  - Custom Configuration: developer_guides/foundation/amplifier_foundation/examples/custom_configuration.md
+                  - Custom Tool: developer_guides/foundation/amplifier_foundation/examples/custom_tool.md
+                  - CLI Application: developer_guides/foundation/amplifier_foundation/examples/cli_application.md
+                  - Multi-Agent System: developer_guides/foundation/amplifier_foundation/examples/multi_agent_system.md
+              - API Reference: developer_guides/foundation/amplifier_foundation/api_reference.md
       - Applications:
           - developer_guides/applications/index.md
           - CLI Case Study: developer_guides/applications/cli_case_study.md

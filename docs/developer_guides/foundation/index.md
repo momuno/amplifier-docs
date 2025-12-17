@@ -83,6 +83,25 @@ Amplifier is built in layers, inspired by the Linux kernel model:
 
 ## Foundation Components
 
+### amplifier-foundation (Bundle Composition Library)
+
+High-level library for building Amplifier applications with bundle composition.
+
+**What it does:**
+- Load and compose configuration bundles
+- Automatic module downloading from git sources
+- @Mention resolution for context files
+- Utilities for I/O, dict merging, path handling, caching
+
+**When to use:**
+- Building applications with reusable configurations
+- You want human-readable YAML + Markdown bundles
+- You need bundle composition (base + overlays)
+
+**Repository:** [microsoft/amplifier-foundation](https://github.com/microsoft/amplifier-foundation)
+
+**Documentation:** See [amplifier-foundation Library](amplifier_foundation/) for detailed guide with examples
+
 ### amplifier-core (The Kernel)
 
 The heart of Amplifier. ~2,600 lines of mechanism-only code.
@@ -159,9 +178,31 @@ Module source resolution strategies.
 
 **Repository:** [microsoft/amplifier-module-resolution](https://github.com/microsoft/amplifier-module-resolution)
 
-## Quick Start: Using amplifier-core
+## Quick Start Options
 
-Here's a minimal example of using amplifier-core directly:
+### Option 1: Using amplifier-foundation (Recommended)
+
+High-level API with bundle composition:
+
+```python
+from amplifier_foundation import load_bundle
+
+# Load and compose bundles
+foundation = await load_bundle("git+https://github.com/microsoft/amplifier-foundation@main")
+provider = await load_bundle("./providers/anthropic.yaml")
+composed = foundation.compose(provider)
+
+# Prepare and execute
+prepared = await composed.prepare()
+async with await prepared.create_session() as session:
+    response = await session.execute("Hello!")
+```
+
+See [amplifier-foundation Library](amplifier_foundation/) for detailed documentation.
+
+### Option 2: Using amplifier-core directly
+
+Lower-level API with manual mount plans:
 
 ```python
 from amplifier_core import AmplifierSession
