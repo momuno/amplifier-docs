@@ -8,7 +8,6 @@ context:
   doc_path: ""              # e.g., "docs/api/overview.md"
   staged_file: ""           # e.g., "/path/.doc-gen/staging/docs/api/overview.md"
   outline_file: ""          # e.g., "/path/.doc-gen/amplifier-docs-cache/.../outline.json"
-  outline_storage: ""       # e.g., "/path/.doc-gen/amplifier-docs-cache"
 
 recursion:
   max_depth: 5
@@ -25,28 +24,39 @@ stages:
         prompt: |
           DOCUMENTATION COMPLETENESS CHECK - ITERATION 1
           
-          Task: Analyze if generated documentation is complete and accurate against its outline.
+          Task: Check if material from source files listed in the outline is MISSING from the generated documentation.
           
           Files to analyze:
           - Staged markdown: {{staged_file}}
           - Outline JSON: {{outline_file}}
-          - Outline storage directory (contains source files): {{outline_storage}}
+          
+          CRITICAL FOCUS: For each section, check if any **material from the source files listed in the outline for that section** SHOULD be present but is NOT currently present in the generated markdown.
           
           Instructions:
           1. Read the staged markdown file ({{staged_file}})
           2. Read the outline JSON ({{outline_file}}) which contains:
-             - _meta.document_instruction (overall style guide)
-             - document.sections[] (array of sections with heading, prompt, sources, reasoning)
-          3. For EACH section in the outline:
-             a. Read the section's prompt (what should be written)
-             b. Read ALL source files referenced in section.sources[]
-             c. Review the reasoning for why each source is relevant
-             d. Check if the staged markdown includes the content that SHOULD be present
-             e. Classify missing content by priority
+             - _meta.document_instruction (overall document intent and style guide)
+             - document.sections[] (array of sections with heading, prompt, sources[], reasoning)
+          
+          3. For EACH section in document.sections[]:
+             a. Read the section heading and identify the corresponding section in {{staged_file}}
+             b. Read the section's prompt field (describes what should be documented)
+             c. Read ALL source files listed in section.sources[]
+             d. For each source file:
+                i. Read the actual content of the source file from the url
+             e. Read the reasoning field for each source (explains WHY the source was included)
+             e. **KEY CHECK**: Compare the actual content in the source files against what appears in the generated markdown section
+             f. Flag any material from the source files that SHOULD be present (based on the section prompt, document intent, and reasoning) but is NOT present
+          
+          Evaluation Criteria (determine "should be present"):
+          - Document intent (_meta.document_instruction): What is the overall purpose and style?
+          - Section prompt: What did the outline specifically ask to be documented?
+          - Source file content: What relevant material exists in the source files?
+          - Reasoning field: Why was each source file included? What specific aspects were deemed relevant?
           
           Priority Classification:
-          - HIGH: Missing functional code examples, critical API usage, core concepts
-          - MEDIUM: Missing key implementation details, important context from sources
+          - HIGH: Missing functional code examples, critical API usage, core concepts, methods/functions mentioned in reasoning
+          - MEDIUM: Missing key implementation details, important context, patterns/behaviors mentioned in reasoning
           - LOW: Minor details, polish issues, formatting inconsistencies
           
           Output format (respond with valid JSON):
@@ -61,12 +71,13 @@ stages:
               {
                 "priority": "HIGH|MEDIUM|LOW",
                 "section": "## Section Heading",
-                "description": "Specific description of what's missing",
-                "sources": ["file paths from outline"],
-                "recommendation": "What should be added"
+                "description": "Specific material from source file that is missing",
+                "sources": ["file paths from outline where this material exists"],
+                "source_content_missing": "Brief excerpt or description of what's in the source but not in the doc",
+                "recommendation": "What specific content should be added from the source files"
               }
             ],
-            "summary": "Brief summary of findings"
+            "summary": "Brief summary of missing source file material"
           }
           
           Important: Focus on HIGH and MEDIUM priority issues. LOW priority issues should be noted but will NOT be fixed automatically.
@@ -168,11 +179,17 @@ stages:
           - Fixes: {{fix_1}}
           - Verification: {{verify_1}}
           
-          Task: Re-check documentation for remaining issues.
+          Task: Re-check if material from source files listed in the outline is MISSING from the generated documentation.
           
           Files: {{staged_file}}, {{outline_file}}, {{outline_storage}}
           
-          Focus on verifying if previous fixes were properly applied and identifying any remaining HIGH/MEDIUM priority issues.
+          CRITICAL FOCUS: For each section, check if any **material from the source files listed in the outline for that section** SHOULD be present but is NOT currently present in the generated markdown.
+          
+          Focus on:
+          1. Verifying if previous fixes were properly applied
+          2. Identifying any remaining HIGH/MEDIUM priority issues
+          3. Checking source file content against generated markdown sections
+          4. Using the section prompt, document intent (_meta.document_instruction), and reasoning field to determine what SHOULD be present
           
           Use same output format as iteration 1 with "iteration": 2.
         output: "check_2"
@@ -220,10 +237,16 @@ stages:
         prompt: |
           DOCUMENTATION COMPLETENESS CHECK - ITERATION 3
           
-          Staged: {{staged_file}}
-          Outline: {{outline_file}}
+          Files: {{staged_file}}, {{outline_file}}, {{outline_storage}}
           
-          Re-check for remaining HIGH/MEDIUM priority issues.
+          CRITICAL FOCUS: For each section, check if any **material from the source files listed in the outline for that section** SHOULD be present but is NOT currently present in the generated markdown.
+          
+          Re-check for remaining HIGH/MEDIUM priority issues by:
+          1. Reading each section's source files from the outline
+          2. Comparing source file content against the generated markdown
+          3. Using section prompt, document intent, and reasoning to determine what SHOULD be present
+          4. Flagging missing source file material that is required
+          
           Output with "iteration": 3.
         output: "check_3"
         timeout: 1200
@@ -267,10 +290,16 @@ stages:
         prompt: |
           DOCUMENTATION COMPLETENESS CHECK - ITERATION 4
           
-          Staged: {{staged_file}}
-          Outline: {{outline_file}}
+          Files: {{staged_file}}, {{outline_file}}, {{outline_storage}}
           
-          Re-check for remaining issues.
+          CRITICAL FOCUS: For each section, check if any **material from the source files listed in the outline for that section** SHOULD be present but is NOT currently present in the generated markdown.
+          
+          Re-check for remaining issues by:
+          1. Reading each section's source files from the outline
+          2. Comparing source file content against the generated markdown
+          3. Using section prompt, document intent, and reasoning to determine what SHOULD be present
+          4. Flagging missing source file material that is required
+          
           Output with "iteration": 4.
         output: "check_4"
         timeout: 1200
@@ -314,10 +343,17 @@ stages:
         prompt: |
           DOCUMENTATION COMPLETENESS CHECK - ITERATION 5 (FINAL AUTOMATIC ATTEMPT)
           
-          Staged: {{staged_file}}
-          Outline: {{outline_file}}
+          Files: {{staged_file}}, {{outline_file}}, {{outline_storage}}
           
-          This is the final automatic check. Be thorough.
+          CRITICAL FOCUS: For each section, check if any **material from the source files listed in the outline for that section** SHOULD be present but is NOT currently present in the generated markdown.
+          
+          This is the final automatic check. Be thorough:
+          1. Read each section's source files from the outline
+          2. Compare source file content against the generated markdown
+          3. Use section prompt, document intent (_meta.document_instruction), and reasoning to determine what SHOULD be present
+          4. Flag missing source file material that is required
+          5. Provide detailed analysis since this is the last automatic attempt
+          
           Output with "iteration": 5.
         output: "check_5"
         timeout: 1200
@@ -352,12 +388,380 @@ stages:
         timeout: 600
 
   # =======================
+  # CLEANLINESS CHECK PHASE
+  # =======================
+  # This phase runs ONLY if completeness check passed (any verify_1-5 == PASS)
+  # Purpose: Verify that material in markdown ONLY comes from source files
+  # or is reasonable synthesis of source material.
+  
+  # =======================
+  # CLEANLINESS ITERATION 1
+  # =======================
+  - name: "cleanliness-1"
+    steps:
+      - id: "cleanliness-check-1"
+        condition: "{{verify_1}} == 'PASS' or {{verify_2}} == 'PASS' or {{verify_3}} == 'PASS' or {{verify_4}} == 'PASS' or {{verify_5}} == 'PASS'"
+        agent: "foundation:explorer"
+        prompt: |
+          DOCUMENTATION CLEANLINESS CHECK - ITERATION 1
+          
+          Task: Check if there is material in the markdown that does NOT come from source files listed in the outline.
+          
+          Files to analyze:
+          - Staged markdown: {{staged_file}}
+          - Outline JSON: {{outline_file}}
+          
+          CRITICAL FOCUS: Identify content in the markdown that does NOT appear in any source file AND is NOT a reasonable synthesis of source material.
+          
+          Instructions:
+          1. Read the entire staged markdown file ({{staged_file}})
+          2. Read the outline JSON ({{outline_file}}) to get all referenced source files
+          3. Read ALL source files listed in the outline (from all sections)
+          4. For each paragraph/section in the markdown:
+             a. Does this content appear in any source file?
+             b. If not, is it a natural synthesis of material from multiple sources? (ACCEPTABLE)
+             c. If not synthesis, is it unrelated content that shouldn't be there? (MUST REMOVE)
+          
+          ACCEPTABLE content (do NOT flag):
+          - Direct quotes or paraphrases from source files
+          - Natural synthesis combining information from multiple sources
+          - Transitional text that connects source materials
+          - Formatting and structure (headers, lists, etc.)
+          - Examples that combine patterns from source files
+          
+          UNACCEPTABLE content (MUST flag):
+          - Factual claims not present in any source file
+          - Code examples not derived from source files
+          - API descriptions without source file backing
+          - Implementation details not found in sources
+          - Features or behaviors not mentioned in sources
+          
+          Priority Classification:
+          - HIGH: Factual content that definitively doesn't appear in any source and isn't synthesis
+          - MEDIUM: Content with unclear relationship to sources (might be synthesis)
+          - LOW: Minor polish issues, formatting discrepancies
+          
+          Output format (respond with valid JSON):
+          {
+            "iteration": 1,
+            "needs_fixing": true/false,
+            "total_issues": <number>,
+            "high_priority_count": <number>,
+            "medium_priority_count": <number>,
+            "low_priority_count": <number>,
+            "issues": [
+              {
+                "priority": "HIGH|MEDIUM|LOW",
+                "section": "## Section Heading",
+                "description": "Content that doesn't come from sources",
+                "markdown_content": "Brief excerpt of the problematic content",
+                "source_check": "Why this doesn't appear in any source file",
+                "recommendation": "Remove this content or clarify if it's valid synthesis"
+              }
+            ],
+            "summary": "Brief summary of cleanliness issues found"
+          }
+          
+          Important: Focus on HIGH and MEDIUM priority issues. Be careful not to flag reasonable synthesis.
+        output: "cleanliness_check_1"
+        timeout: 1200
+      
+      - id: "cleanliness-fix-1"
+        condition: "{{cleanliness_check_1.needs_fixing}} == 'true'"
+        agent: "developer-expertise:modular-builder"
+        prompt: |
+          FIX DOCUMENTATION CLEANLINESS ISSUES - ITERATION 1
+          
+          Task: Remove or annotate content based on cleanliness analysis.
+          
+          Context:
+          - Staged file to update: {{staged_file}}
+          - Issues found: {{cleanliness_check_1}}
+          
+          Instructions:
+          1. Read the current staged markdown file ({{staged_file}})
+          2. For EACH issue in {{cleanliness_check_1.issues}} where priority is HIGH:
+             a. Locate the exact content in the markdown
+             b. REMOVE content that definitively doesn't belong
+             c. For MEDIUM priority, use judgment:
+                - If it's likely valid synthesis, KEEP with optional note
+                - If it's questionable, REMOVE or add [TODO: verify] note
+          3. Do NOT fix LOW priority issues
+          4. Maintain document structure, flow, and formatting
+          5. Update the staged file ({{staged_file}}) in place using write_file
+          
+          Output format (respond with valid JSON):
+          {
+            "iteration": 1,
+            "fixes_applied": <number>,
+            "issues_fixed": [
+              {
+                "priority": "HIGH|MEDIUM",
+                "section": "## Section Heading",
+                "what_was_removed": "Description of content removed",
+                "reasoning": "Why this content was removed"
+              }
+            ],
+            "file_updated": "{{staged_file}}",
+            "summary": "Summary of all cleanliness fixes made"
+          }
+        output: "cleanliness_fix_1"
+        timeout: 1800
+      
+      - id: "cleanliness-verify-1"
+        condition: "{{verify_1}} == 'PASS' or {{verify_2}} == 'PASS' or {{verify_3}} == 'PASS' or {{verify_4}} == 'PASS' or {{verify_5}} == 'PASS'"
+        agent: "recipes:result-validator"
+        prompt: |
+          VERIFY DOCUMENTATION CLEANLINESS - ITERATION 1
+          
+          Task: Determine if all content in the documentation comes from source files or is reasonable synthesis.
+          
+          Context:
+          - Staged file: {{staged_file}}
+          - Original issues: {{cleanliness_check_1}}
+          - Fixes applied: {{cleanliness_fix_1}}
+          
+          Evaluation criteria:
+          1. Are all HIGH priority cleanliness issues resolved?
+          2. Are all MEDIUM priority cleanliness issues resolved?
+          3. Does all content trace back to source files or represent valid synthesis?
+          
+          Respond with clear verdict using this EXACT format:
+          
+          STATUS: PASS
+          (if all HIGH and MEDIUM cleanliness issues are resolved)
+          
+          OR
+          
+          STATUS: CONTINUE
+          (if HIGH or MEDIUM cleanliness issues remain)
+          
+          Evidence:
+          - List what was successfully fixed
+          - List what issues remain (if any)
+          - Provide specific reasons for the verdict
+          
+          Make your verdict clear and unambiguous.
+        output: "cleanliness_verify_1"
+        timeout: 600
+
+  # =======================
+  # CLEANLINESS ITERATION 2
+  # =======================
+  - name: "cleanliness-2"
+    steps:
+      - id: "cleanliness-check-2"
+        condition: "{{cleanliness_verify_1}} != 'PASS'"
+        agent: "foundation:explorer"
+        prompt: |
+          DOCUMENTATION CLEANLINESS CHECK - ITERATION 2
+          
+          Previous iteration:
+          - Check: {{cleanliness_check_1}}
+          - Fixes: {{cleanliness_fix_1}}
+          - Verification: {{cleanliness_verify_1}}
+          
+          Task: Re-check if there is material in the markdown that does NOT come from source files.
+          
+          Files: {{staged_file}}, {{outline_file}}
+          
+          Focus on:
+          1. Verifying if previous cleanliness fixes were properly applied
+          2. Identifying any remaining HIGH/MEDIUM priority cleanliness issues
+          3. Checking each content block against all source files
+          4. Distinguishing between invalid content and reasonable synthesis
+          
+          Use same output format as iteration 1 with "iteration": 2.
+        output: "cleanliness_check_2"
+        timeout: 1200
+      
+      - id: "cleanliness-fix-2"
+        condition: "{{cleanliness_check_2.needs_fixing}} == 'true'"
+        agent: "developer-expertise:modular-builder"
+        prompt: |
+          FIX DOCUMENTATION CLEANLINESS ISSUES - ITERATION 2
+          
+          Staged file: {{staged_file}}
+          Remaining issues: {{cleanliness_check_2}}
+          Previous fixes: {{cleanliness_fix_1}}
+          
+          Remove HIGH and MEDIUM priority invalid content only.
+          Use same output format as iteration 1 with "iteration": 2.
+        output: "cleanliness_fix_2"
+        timeout: 1800
+      
+      - id: "cleanliness-verify-2"
+        condition: "{{cleanliness_verify_1}} != 'PASS'"
+        agent: "recipes:result-validator"
+        prompt: |
+          VERIFY DOCUMENTATION CLEANLINESS - ITERATION 2
+          
+          Staged: {{staged_file}}
+          Current check: {{cleanliness_check_2}}
+          Fixes: {{cleanliness_fix_2}}
+          
+          Verdict: STATUS: PASS or STATUS: CONTINUE
+          
+          Provide evidence for verdict.
+        output: "cleanliness_verify_2"
+        timeout: 600
+
+  # =======================
+  # CLEANLINESS ITERATION 3
+  # =======================
+  - name: "cleanliness-3"
+    steps:
+      - id: "cleanliness-check-3"
+        condition: "{{cleanliness_verify_2}} != 'PASS'"
+        agent: "foundation:explorer"
+        prompt: |
+          DOCUMENTATION CLEANLINESS CHECK - ITERATION 3
+          
+          Files: {{staged_file}}, {{outline_file}}
+          
+          Re-check for remaining HIGH/MEDIUM priority cleanliness issues.
+          Verify each content block traces back to source files or is valid synthesis.
+          
+          Output with "iteration": 3.
+        output: "cleanliness_check_3"
+        timeout: 1200
+      
+      - id: "cleanliness-fix-3"
+        condition: "{{cleanliness_check_3.needs_fixing}} == 'true'"
+        agent: "developer-expertise:modular-builder"
+        prompt: |
+          FIX DOCUMENTATION CLEANLINESS ISSUES - ITERATION 3
+          
+          Staged: {{staged_file}}
+          Issues: {{cleanliness_check_3}}
+          
+          Remove HIGH and MEDIUM priority invalid content.
+          Output with "iteration": 3.
+        output: "cleanliness_fix_3"
+        timeout: 1800
+      
+      - id: "cleanliness-verify-3"
+        condition: "{{cleanliness_verify_2}} != 'PASS'"
+        agent: "recipes:result-validator"
+        prompt: |
+          VERIFY DOCUMENTATION CLEANLINESS - ITERATION 3
+          
+          Staged: {{staged_file}}
+          Check: {{cleanliness_check_3}}
+          Fixes: {{cleanliness_fix_3}}
+          
+          Verdict: STATUS: PASS or STATUS: CONTINUE
+        output: "cleanliness_verify_3"
+        timeout: 600
+
+  # =======================
+  # CLEANLINESS ITERATION 4
+  # =======================
+  - name: "cleanliness-4"
+    steps:
+      - id: "cleanliness-check-4"
+        condition: "{{cleanliness_verify_3}} != 'PASS'"
+        agent: "foundation:explorer"
+        prompt: |
+          DOCUMENTATION CLEANLINESS CHECK - ITERATION 4
+          
+          Files: {{staged_file}}, {{outline_file}}
+          
+          Re-check for remaining cleanliness issues.
+          Ensure all content comes from sources or is valid synthesis.
+          
+          Output with "iteration": 4.
+        output: "cleanliness_check_4"
+        timeout: 1200
+      
+      - id: "cleanliness-fix-4"
+        condition: "{{cleanliness_check_4.needs_fixing}} == 'true'"
+        agent: "developer-expertise:modular-builder"
+        prompt: |
+          FIX DOCUMENTATION CLEANLINESS ISSUES - ITERATION 4
+          
+          Staged: {{staged_file}}
+          Issues: {{cleanliness_check_4}}
+          
+          Remove HIGH and MEDIUM priority invalid content.
+          Output with "iteration": 4.
+        output: "cleanliness_fix_4"
+        timeout: 1800
+      
+      - id: "cleanliness-verify-4"
+        condition: "{{cleanliness_verify_3}} != 'PASS'"
+        agent: "recipes:result-validator"
+        prompt: |
+          VERIFY DOCUMENTATION CLEANLINESS - ITERATION 4
+          
+          Staged: {{staged_file}}
+          Check: {{cleanliness_check_4}}
+          Fixes: {{cleanliness_fix_4}}
+          
+          Verdict: STATUS: PASS or STATUS: CONTINUE
+        output: "cleanliness_verify_4"
+        timeout: 600
+
+  # =======================
+  # CLEANLINESS ITERATION 5 (Final Auto)
+  # =======================
+  - name: "cleanliness-5-final"
+    steps:
+      - id: "cleanliness-check-5"
+        condition: "{{cleanliness_verify_4}} != 'PASS'"
+        agent: "foundation:explorer"
+        prompt: |
+          DOCUMENTATION CLEANLINESS CHECK - ITERATION 5 (FINAL AUTOMATIC ATTEMPT)
+          
+          Files: {{staged_file}}, {{outline_file}}
+          
+          This is the final automatic cleanliness check. Be thorough:
+          1. Read all source files from outline
+          2. Check every content block in markdown
+          3. Identify any content that doesn't trace to sources
+          4. Distinguish invalid content from reasonable synthesis
+          5. Provide detailed analysis since this is the last automatic attempt
+          
+          Output with "iteration": 5.
+        output: "cleanliness_check_5"
+        timeout: 1200
+      
+      - id: "cleanliness-fix-5"
+        condition: "{{cleanliness_check_5.needs_fixing}} == 'true'"
+        agent: "developer-expertise:modular-builder"
+        prompt: |
+          FIX DOCUMENTATION CLEANLINESS ISSUES - ITERATION 5 (FINAL AUTOMATIC ATTEMPT)
+          
+          Staged: {{staged_file}}
+          Issues: {{cleanliness_check_5}}
+          
+          Final automatic fix attempt - be thorough.
+          Remove HIGH and MEDIUM priority invalid content.
+          Output with "iteration": 5.
+        output: "cleanliness_fix_5"
+        timeout: 1800
+      
+      - id: "cleanliness-verify-5"
+        condition: "{{cleanliness_verify_4}} != 'PASS'"
+        agent: "recipes:result-validator"
+        prompt: |
+          VERIFY DOCUMENTATION CLEANLINESS - ITERATION 5 (FINAL)
+          
+          Staged: {{staged_file}}
+          Check: {{cleanliness_check_5}}
+          Fixes: {{cleanliness_fix_5}}
+          
+          Final verification. Verdict: STATUS: PASS or STATUS: CONTINUE
+        output: "cleanliness_verify_5"
+        timeout: 600
+
+  # =======================
   # HUMAN INTERVENTION
   # =======================
   - name: "human-review-required"
     steps:
       - id: "escalation-analysis"
-        condition: "{{verify_5}} != 'PASS'"
+        condition: "{{verify_5}} != 'PASS' or {{cleanliness_verify_5}} != 'PASS'"
         agent: "developer-expertise:zen-architect"
         mode: "ANALYZE"
         prompt: |
@@ -367,9 +771,12 @@ stages:
           Staged file: {{staged_file}}
           Outline: {{outline_file}}
           
-          The document has gone through 5 automatic fix iterations but still has unresolved issues.
+          The document has gone through automatic fix iterations but still has unresolved issues.
           
-          Iteration History:
+          ═══════════════════════════════════════════════════════════
+          COMPLETENESS CHECK HISTORY (Iterations 1-5)
+          Purpose: Verify material from source files IS present
+          ═══════════════════════════════════════════════════════════
           
           Iteration 1:
           - Issues found: {{check_1}}
@@ -396,15 +803,49 @@ stages:
           - Fixes applied: {{fix_5}}
           - Verification: {{verify_5}}
           
-          Analysis Required:
-          1. What specific issues remain unresolved after 5 iterations?
-          2. Why couldn't these issues be automatically fixed?
-          3. What patterns do you see in the persistent issues?
-          4. What manual intervention is needed?
-          5. Is the document acceptable as-is with known limitations, or does it require manual fixes?
+          ═══════════════════════════════════════════════════════════
+          CLEANLINESS CHECK HISTORY (Iterations 1-5)
+          Purpose: Verify material in markdown ONLY comes from sources
+          ═══════════════════════════════════════════════════════════
+          
+          Iteration 1:
+          - Issues found: {{cleanliness_check_1}}
+          - Fixes applied: {{cleanliness_fix_1}}
+          - Verification: {{cleanliness_verify_1}}
+          
+          Iteration 2:
+          - Issues found: {{cleanliness_check_2}}
+          - Fixes applied: {{cleanliness_fix_2}}
+          - Verification: {{cleanliness_verify_2}}
+          
+          Iteration 3:
+          - Issues found: {{cleanliness_check_3}}
+          - Fixes applied: {{cleanliness_fix_3}}
+          - Verification: {{cleanliness_verify_3}}
+          
+          Iteration 4:
+          - Issues found: {{cleanliness_check_4}}
+          - Fixes applied: {{cleanliness_fix_4}}
+          - Verification: {{cleanliness_verify_4}}
+          
+          Iteration 5 (Final):
+          - Issues found: {{cleanliness_check_5}}
+          - Fixes applied: {{cleanliness_fix_5}}
+          - Verification: {{cleanliness_verify_5}}
+          
+          ═══════════════════════════════════════════════════════════
+          ANALYSIS REQUIRED
+          ═══════════════════════════════════════════════════════════
+          
+          1. What specific issues remain unresolved after all iterations?
+          2. Which phase failed: completeness, cleanliness, or both?
+          3. Why couldn't these issues be automatically fixed?
+          4. What patterns do you see in the persistent issues?
+          5. What manual intervention is needed?
+          6. Is the document acceptable as-is with known limitations, or does it require manual fixes?
           
           Provide:
-          - Clear summary of unresolved issues
+          - Clear summary of unresolved issues by phase (completeness vs cleanliness)
           - Root cause analysis of why auto-fix failed
           - Specific recommendations for manual intervention
           - Assessment of whether document is "good enough" vs "needs manual work"
@@ -467,17 +908,33 @@ stages:
 #     outline_file='/path/.doc-gen/amplifier-docs-cache/.../outline.json'
 #     outline_storage='/path/.doc-gen/amplifier-docs-cache'"
 #
-# The recipe will:
-# 1. Check documentation completeness against outline and sources
-# 2. Automatically fix HIGH and MEDIUM priority issues
-# 3. Verify fixes were successful
-# 4. Repeat up to 5 times until document passes
-# 5. If still unresolved after 5 iterations, request human review
+# The recipe has TWO validation phases:
 #
-# Early exit: If document passes verification at any iteration, subsequent
-#            iterations are automatically skipped.
+# PHASE 1: COMPLETENESS CHECK (Iterations 1-5)
+# - Verifies that material from source files IS present in the markdown
+# - Automatically fixes HIGH and MEDIUM priority missing content
+# - Early exit if any iteration passes
 #
-# Iteration limit: Maximum 5 automatic attempts to prevent infinite loops.
+# PHASE 2: CLEANLINESS CHECK (Iterations 1-5)
+# - Runs ONLY if completeness check passes
+# - Verifies that material in markdown ONLY comes from source files
+# - Removes content that doesn't trace to sources (or isn't valid synthesis)
+# - Automatically fixes HIGH and MEDIUM priority invalid content
+# - Early exit if any iteration passes
 #
-# Human review: If recipe reaches approval gate, you must explicitly approve
-#              or deny to continue.
+# PHASE 3: HUMAN REVIEW (if needed)
+# - Triggered if EITHER phase fails all 5 iterations
+# - Provides history from both completeness and cleanliness checks
+# - Requires explicit approval or denial to continue
+#
+# Expected flow:
+#   Completeness (1-5 iterations) → Cleanliness (1-5 iterations) → Human Review (if needed)
+#
+# Early exit: If document passes verification at any iteration within either phase,
+#            subsequent iterations in that phase are automatically skipped.
+#
+# Iteration limits: Maximum 5 automatic attempts per phase to prevent infinite loops.
+#
+# Human review: If recipe reaches approval gate, you must explicitly approve or deny:
+#              amplifier run "approve recipe session <session-id> stage human-review-required"
+#              amplifier run "deny recipe session <session-id> stage human-review-required"
