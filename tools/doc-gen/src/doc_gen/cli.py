@@ -1,6 +1,8 @@
 """Command-line interface for doc-gen."""
 
+import json
 import shutil
+import subprocess
 import sys
 from pathlib import Path
 
@@ -306,6 +308,110 @@ def generate(doc_path: str):
         if PromptLogger.is_enabled():
             PromptLogger.close()
             click.echo(f"\nDebug log saved to: {PromptLogger.get_log_path()}", err=True)
+
+
+@cli.command("check")
+@click.argument("doc_path", type=str)
+def check(doc_path: str):
+    """Check staged documentation for accuracy and fix issues.
+    
+    DOC_PATH: Documentation file path (e.g., docs/api/overview.md)
+    
+    Example:
+        doc-gen check docs/api/overview.md
+    
+    This runs an accuracy check recipe that:
+    1. Validates content against the outline
+    2. Checks source accuracy
+    3. Fixes identified issues
+    4. Verifies the fixes
+    """
+    project_root = find_project_root() or Path.cwd()
+    
+    # Load config
+    try:
+        config = Config.load(project_root)
+    except FileNotFoundError:
+        click.echo("Config not found. Run 'doc-gen init' first.", err=True)
+        sys.exit(1)
+    
+    # Build paths
+    staging_path = project_root / ".doc-gen" / "staging" / doc_path
+    
+    # Check if staged file exists
+    if not staging_path.exists():
+        click.echo(f"❌ Error: No staged file found at: .doc-gen/staging/{doc_path}", err=True)
+        click.echo(f"\nGenerate one first with: doc-gen generate {doc_path}", err=True)
+        sys.exit(1)
+    
+    # Look up outline
+    outline_path = config.get_outline_path(doc_path, project_root)
+    if outline_path is None:
+        click.echo(f"Error: No outline registered for: {doc_path}", err=True)
+        sys.exit(1)
+    
+    if not outline_path.exists():
+        click.echo(f"Error: Outline file not found: {outline_path}", err=True)
+        sys.exit(1)
+    
+    # Find the recipe in the tool's directory
+    # The recipe is part of the tool, not the ephemeral .doc-gen directory
+    tool_dir = Path(__file__).parent.parent.parent  # src/doc_gen/cli.py -> tools/doc-gen
+    recipe_path = tool_dir / "recipes" / "doc-accuracy-iterative-fixer.yaml"
+    
+    if not recipe_path.exists():
+        click.echo(f"❌ Error: Accuracy check recipe not found at: {recipe_path}", err=True)
+        click.echo("\nThis is a doc-gen tool file. Please report this issue.", err=True)
+        sys.exit(1)
+    
+    # Execute the recipe using Amplifier
+    click.echo(f"🔍 Running accuracy check on: {doc_path}\n")
+    click.echo(f"📄 Staged file: {staging_path.relative_to(project_root)}")
+    click.echo(f"📋 Outline: {outline_path.relative_to(project_root)}\n")
+    
+    # Build context for recipe
+    context = {
+        "doc_path": doc_path,
+        "staged_file": str(staging_path),
+        "outline_file": str(outline_path),
+        "outline_storage": str(project_root / config.outline_storage)
+    }
+    
+    try:
+        # Execute recipe via Amplifier CLI
+        cmd = [
+            "amplifier",
+            "recipes",
+            "execute",
+            str(recipe_path),
+            "--context",
+            json.dumps(context)
+        ]
+        
+        result = subprocess.run(
+            cmd,
+            cwd=project_root,
+            capture_output=False,  # Let output stream to terminal
+            text=True
+        )
+        
+        if result.returncode != 0:
+            click.echo(f"\n❌ Recipe execution failed with exit code {result.returncode}", err=True)
+            sys.exit(1)
+        
+        click.echo(f"\n✅ Accuracy check complete!")
+        click.echo(f"📝 Updated file at: {staging_path.relative_to(project_root)}")
+        click.echo(f"\n👀 Review changes: cat {staging_path.relative_to(project_root)}")
+        click.echo(f"✅ If satisfied, promote with: doc-gen promote {doc_path}")
+        click.echo(f"🔄 Or run check again: doc-gen check {doc_path}")
+        
+    except FileNotFoundError:
+        click.echo("❌ Error: 'amplifier' command not found.", err=True)
+        click.echo("Make sure Amplifier is installed and in your PATH.", err=True)
+        sys.exit(1)
+    except Exception as e:
+        click.echo(f"❌ Error running recipe: {e}", err=True)
+        sys.exit(1)
 
 
 @cli.command("promote")

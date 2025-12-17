@@ -1,0 +1,483 @@
+name: "doc-accuracy-iterative-fixer"
+description: "Iteratively check and fix documentation accuracy with up to 5 automatic attempts, escalating to human review if needed"
+version: "1.0.0"
+author: "Doc-Gen Tool"
+tags: ["documentation", "quality", "iterative", "validation", "automatic-fixing"]
+
+context:
+  doc_path: ""              # e.g., "docs/api/overview.md"
+  staged_file: ""           # e.g., "/path/.doc-gen/staging/docs/api/overview.md"
+  outline_file: ""          # e.g., "/path/.doc-gen/amplifier-docs-cache/.../outline.json"
+  outline_storage: ""       # e.g., "/path/.doc-gen/amplifier-docs-cache"
+
+recursion:
+  max_depth: 5
+  max_total_steps: 100
+
+stages:
+  # =======================
+  # ITERATION 1
+  # =======================
+  - name: "iteration-1"
+    steps:
+      - id: "check-1"
+        agent: "foundation:explorer"
+        prompt: |
+          DOCUMENTATION COMPLETENESS CHECK - ITERATION 1
+          
+          Task: Analyze if generated documentation is complete and accurate against its outline.
+          
+          Files to analyze:
+          - Staged markdown: {{staged_file}}
+          - Outline JSON: {{outline_file}}
+          - Outline storage directory (contains source files): {{outline_storage}}
+          
+          Instructions:
+          1. Read the staged markdown file ({{staged_file}})
+          2. Read the outline JSON ({{outline_file}}) which contains:
+             - _meta.document_instruction (overall style guide)
+             - document.sections[] (array of sections with heading, prompt, sources, reasoning)
+          3. For EACH section in the outline:
+             a. Read the section's prompt (what should be written)
+             b. Read ALL source files referenced in section.sources[]
+             c. Review the reasoning for why each source is relevant
+             d. Check if the staged markdown includes the content that SHOULD be present
+             e. Classify missing content by priority
+          
+          Priority Classification:
+          - HIGH: Missing functional code examples, critical API usage, core concepts
+          - MEDIUM: Missing key implementation details, important context from sources
+          - LOW: Minor details, polish issues, formatting inconsistencies
+          
+          Output format (respond with valid JSON):
+          {
+            "iteration": 1,
+            "needs_fixing": true/false,
+            "total_issues": <number>,
+            "high_priority_count": <number>,
+            "medium_priority_count": <number>,
+            "low_priority_count": <number>,
+            "issues": [
+              {
+                "priority": "HIGH|MEDIUM|LOW",
+                "section": "## Section Heading",
+                "description": "Specific description of what's missing",
+                "sources": ["file paths from outline"],
+                "recommendation": "What should be added"
+              }
+            ],
+            "summary": "Brief summary of findings"
+          }
+          
+          Important: Focus on HIGH and MEDIUM priority issues. LOW priority issues should be noted but will NOT be fixed automatically.
+        output: "check_1"
+        timeout: 1200
+      
+      - id: "fix-1"
+        condition: "{{check_1.needs_fixing}} == 'true'"
+        agent: "developer-expertise:modular-builder"
+        prompt: |
+          FIX DOCUMENTATION ISSUES - ITERATION 1
+          
+          Task: Fix HIGH and MEDIUM priority issues in the staged documentation.
+          
+          Context:
+          - Staged file to update: {{staged_file}}
+          - Issues found: {{check_1}}
+          - Outline reference: {{outline_file}}
+          - Outline storage: {{outline_storage}}
+          
+          Instructions:
+          1. Read the current staged markdown file ({{staged_file}})
+          2. For EACH issue in {{check_1.issues}} where priority is HIGH or MEDIUM:
+             a. Identify the exact section in the markdown
+             b. Read the source files mentioned in the issue
+             c. Add the missing content to the appropriate location
+             d. Maintain document structure, style, and formatting
+             e. Ensure code examples are functional and complete
+          3. Do NOT fix LOW priority issues
+          4. Update the staged file ({{staged_file}}) in place using write_file
+          
+          Output format (respond with valid JSON):
+          {
+            "iteration": 1,
+            "fixes_applied": <number>,
+            "issues_fixed": [
+              {
+                "priority": "HIGH|MEDIUM",
+                "section": "## Section Heading",
+                "what_was_added": "Description of content added"
+              }
+            ],
+            "file_updated": "{{staged_file}}",
+            "summary": "Summary of all changes made"
+          }
+        output: "fix_1"
+        timeout: 1800
+      
+      - id: "verify-1"
+        agent: "recipes:result-validator"
+        prompt: |
+          VERIFY DOCUMENTATION QUALITY - ITERATION 1
+          
+          Task: Determine if the documentation is ready for publication or needs more work.
+          
+          Context:
+          - Staged file: {{staged_file}}
+          - Original issues: {{check_1}}
+          - Fixes applied: {{fix_1}}
+          
+          Evaluation criteria:
+          1. Are all HIGH priority issues resolved?
+          2. Are all MEDIUM priority issues resolved?
+          3. Is the document complete and accurate?
+          4. Are functional code examples present where required?
+          
+          Respond with clear verdict using this EXACT format:
+          
+          STATUS: PASS
+          (if all HIGH and MEDIUM issues are resolved)
+          
+          OR
+          
+          STATUS: CONTINUE
+          (if HIGH or MEDIUM issues remain)
+          
+          Evidence:
+          - List what was successfully fixed
+          - List what issues remain (if any)
+          - Provide specific reasons for the verdict
+          
+          Make your verdict clear and unambiguous.
+        output: "verify_1"
+        timeout: 600
+
+  # =======================
+  # ITERATION 2
+  # =======================
+  - name: "iteration-2"
+    steps:
+      - id: "should-continue-2"
+        condition: "{{verify_1}} != 'PASS'"
+        agent: "foundation:explorer"
+        prompt: |
+          DOCUMENTATION COMPLETENESS CHECK - ITERATION 2
+          
+          Previous iteration:
+          - Check: {{check_1}}
+          - Fixes: {{fix_1}}
+          - Verification: {{verify_1}}
+          
+          Task: Re-check documentation for remaining issues.
+          
+          Files: {{staged_file}}, {{outline_file}}, {{outline_storage}}
+          
+          Focus on verifying if previous fixes were properly applied and identifying any remaining HIGH/MEDIUM priority issues.
+          
+          Use same output format as iteration 1 with "iteration": 2.
+        output: "check_2"
+        timeout: 1200
+      
+      - id: "fix-2"
+        condition: "{{check_2.needs_fixing}} == 'true'"
+        agent: "developer-expertise:modular-builder"
+        prompt: |
+          FIX DOCUMENTATION ISSUES - ITERATION 2
+          
+          Staged file: {{staged_file}}
+          Remaining issues: {{check_2}}
+          Previous fixes: {{fix_1}}
+          
+          Apply fixes for HIGH and MEDIUM priority issues only.
+          Use same output format as iteration 1 with "iteration": 2.
+        output: "fix_2"
+        timeout: 1800
+      
+      - id: "verify-2"
+        condition: "{{verify_1}} != 'PASS'"
+        agent: "recipes:result-validator"
+        prompt: |
+          VERIFY DOCUMENTATION QUALITY - ITERATION 2
+          
+          Staged: {{staged_file}}
+          Current check: {{check_2}}
+          Fixes: {{fix_2}}
+          
+          Verdict: STATUS: PASS or STATUS: CONTINUE
+          
+          Provide evidence for verdict.
+        output: "verify_2"
+        timeout: 600
+
+  # =======================
+  # ITERATION 3
+  # =======================
+  - name: "iteration-3"
+    steps:
+      - id: "should-continue-3"
+        condition: "{{verify_2}} != 'PASS'"
+        agent: "foundation:explorer"
+        prompt: |
+          DOCUMENTATION COMPLETENESS CHECK - ITERATION 3
+          
+          Staged: {{staged_file}}
+          Outline: {{outline_file}}
+          
+          Re-check for remaining HIGH/MEDIUM priority issues.
+          Output with "iteration": 3.
+        output: "check_3"
+        timeout: 1200
+      
+      - id: "fix-3"
+        condition: "{{check_3.needs_fixing}} == 'true'"
+        agent: "developer-expertise:modular-builder"
+        prompt: |
+          FIX DOCUMENTATION ISSUES - ITERATION 3
+          
+          Staged: {{staged_file}}
+          Issues: {{check_3}}
+          
+          Fix HIGH and MEDIUM priority only.
+          Output with "iteration": 3.
+        output: "fix_3"
+        timeout: 1800
+      
+      - id: "verify-3"
+        condition: "{{verify_2}} != 'PASS'"
+        agent: "recipes:result-validator"
+        prompt: |
+          VERIFY DOCUMENTATION QUALITY - ITERATION 3
+          
+          Staged: {{staged_file}}
+          Check: {{check_3}}
+          Fixes: {{fix_3}}
+          
+          Verdict: STATUS: PASS or STATUS: CONTINUE
+        output: "verify_3"
+        timeout: 600
+
+  # =======================
+  # ITERATION 4
+  # =======================
+  - name: "iteration-4"
+    steps:
+      - id: "should-continue-4"
+        condition: "{{verify_3}} != 'PASS'"
+        agent: "foundation:explorer"
+        prompt: |
+          DOCUMENTATION COMPLETENESS CHECK - ITERATION 4
+          
+          Staged: {{staged_file}}
+          Outline: {{outline_file}}
+          
+          Re-check for remaining issues.
+          Output with "iteration": 4.
+        output: "check_4"
+        timeout: 1200
+      
+      - id: "fix-4"
+        condition: "{{check_4.needs_fixing}} == 'true'"
+        agent: "developer-expertise:modular-builder"
+        prompt: |
+          FIX DOCUMENTATION ISSUES - ITERATION 4
+          
+          Staged: {{staged_file}}
+          Issues: {{check_4}}
+          
+          Fix HIGH and MEDIUM priority.
+          Output with "iteration": 4.
+        output: "fix_4"
+        timeout: 1800
+      
+      - id: "verify-4"
+        condition: "{{verify_3}} != 'PASS'"
+        agent: "recipes:result-validator"
+        prompt: |
+          VERIFY DOCUMENTATION QUALITY - ITERATION 4
+          
+          Staged: {{staged_file}}
+          Check: {{check_4}}
+          Fixes: {{fix_4}}
+          
+          Verdict: STATUS: PASS or STATUS: CONTINUE
+        output: "verify_4"
+        timeout: 600
+
+  # =======================
+  # ITERATION 5 (Final Auto)
+  # =======================
+  - name: "iteration-5-final"
+    steps:
+      - id: "should-continue-5"
+        condition: "{{verify_4}} != 'PASS'"
+        agent: "foundation:explorer"
+        prompt: |
+          DOCUMENTATION COMPLETENESS CHECK - ITERATION 5 (FINAL AUTOMATIC ATTEMPT)
+          
+          Staged: {{staged_file}}
+          Outline: {{outline_file}}
+          
+          This is the final automatic check. Be thorough.
+          Output with "iteration": 5.
+        output: "check_5"
+        timeout: 1200
+      
+      - id: "fix-5"
+        condition: "{{check_5.needs_fixing}} == 'true'"
+        agent: "developer-expertise:modular-builder"
+        prompt: |
+          FIX DOCUMENTATION ISSUES - ITERATION 5 (FINAL AUTOMATIC ATTEMPT)
+          
+          Staged: {{staged_file}}
+          Issues: {{check_5}}
+          
+          Final automatic fix attempt - be thorough.
+          Fix HIGH and MEDIUM priority.
+          Output with "iteration": 5.
+        output: "fix_5"
+        timeout: 1800
+      
+      - id: "verify-5"
+        condition: "{{verify_4}} != 'PASS'"
+        agent: "recipes:result-validator"
+        prompt: |
+          VERIFY DOCUMENTATION QUALITY - ITERATION 5 (FINAL)
+          
+          Staged: {{staged_file}}
+          Check: {{check_5}}
+          Fixes: {{fix_5}}
+          
+          Final verification. Verdict: STATUS: PASS or STATUS: CONTINUE
+        output: "verify_5"
+        timeout: 600
+
+  # =======================
+  # HUMAN INTERVENTION
+  # =======================
+  - name: "human-review-required"
+    steps:
+      - id: "escalation-analysis"
+        condition: "{{verify_5}} != 'PASS'"
+        agent: "developer-expertise:zen-architect"
+        mode: "ANALYZE"
+        prompt: |
+          ESCALATION ANALYSIS - HUMAN REVIEW REQUIRED
+          
+          Documentation: {{doc_path}}
+          Staged file: {{staged_file}}
+          Outline: {{outline_file}}
+          
+          The document has gone through 5 automatic fix iterations but still has unresolved issues.
+          
+          Iteration History:
+          
+          Iteration 1:
+          - Issues found: {{check_1}}
+          - Fixes applied: {{fix_1}}
+          - Verification: {{verify_1}}
+          
+          Iteration 2:
+          - Issues found: {{check_2}}
+          - Fixes applied: {{fix_2}}
+          - Verification: {{verify_2}}
+          
+          Iteration 3:
+          - Issues found: {{check_3}}
+          - Fixes applied: {{fix_3}}
+          - Verification: {{verify_3}}
+          
+          Iteration 4:
+          - Issues found: {{check_4}}
+          - Fixes applied: {{fix_4}}
+          - Verification: {{verify_4}}
+          
+          Iteration 5 (Final):
+          - Issues found: {{check_5}}
+          - Fixes applied: {{fix_5}}
+          - Verification: {{verify_5}}
+          
+          Analysis Required:
+          1. What specific issues remain unresolved after 5 iterations?
+          2. Why couldn't these issues be automatically fixed?
+          3. What patterns do you see in the persistent issues?
+          4. What manual intervention is needed?
+          5. Is the document acceptable as-is with known limitations, or does it require manual fixes?
+          
+          Provide:
+          - Clear summary of unresolved issues
+          - Root cause analysis of why auto-fix failed
+          - Specific recommendations for manual intervention
+          - Assessment of whether document is "good enough" vs "needs manual work"
+          
+          This analysis will be presented to a human for review and decision.
+        output: "escalation"
+        timeout: 900
+    
+    approval:
+      required: true
+      prompt: |
+        ═══════════════════════════════════════════════════════════
+        DOCUMENTATION QUALITY GATE - HUMAN REVIEW REQUIRED
+        ═══════════════════════════════════════════════════════════
+        
+        Document: {{doc_path}}
+        Staged Location: {{staged_file}}
+        
+        STATUS: After 5 automatic fix iterations, this document still has unresolved issues.
+        
+        ESCALATION ANALYSIS:
+        {{escalation}}
+        
+        ───────────────────────────────────────────────────────────
+        
+        DECISION OPTIONS:
+        
+        1. APPROVE: Accept the document as-is
+           - Choose this if the remaining issues are acceptable
+           - Document will proceed with known limitations
+           - You take responsibility for the current quality level
+        
+        2. DENY: Require manual intervention
+           - Choose this if issues must be fixed before proceeding
+           - Recipe will stop here
+           - You will need to manually fix issues and re-run
+        
+        ───────────────────────────────────────────────────────────
+        
+        INSTRUCTIONS:
+        1. Review the staged file: {{staged_file}}
+        2. Review the escalation analysis above
+        3. Decide: Accept (approve) or Require fixes (deny)
+        
+        To approve: amplifier run "approve recipe session <session-id> stage human-review-required"
+        To deny: amplifier run "deny recipe session <session-id> stage human-review-required"
+        
+        ═══════════════════════════════════════════════════════════
+      timeout: 0
+      default: "deny"
+
+# ============================================================================
+# USAGE INSTRUCTIONS
+# ============================================================================
+#
+# Execute this recipe:
+#   amplifier run "execute doc-accuracy-iterative-fixer.yaml with 
+#     doc_path='docs/api/overview.md' 
+#     staged_file='/path/.doc-gen/staging/docs/api/overview.md'
+#     outline_file='/path/.doc-gen/amplifier-docs-cache/.../outline.json'
+#     outline_storage='/path/.doc-gen/amplifier-docs-cache'"
+#
+# The recipe will:
+# 1. Check documentation completeness against outline and sources
+# 2. Automatically fix HIGH and MEDIUM priority issues
+# 3. Verify fixes were successful
+# 4. Repeat up to 5 times until document passes
+# 5. If still unresolved after 5 iterations, request human review
+#
+# Early exit: If document passes verification at any iteration, subsequent
+#            iterations are automatically skipped.
+#
+# Iteration limit: Maximum 5 automatic attempts to prevent infinite loops.
+#
+# Human review: If recipe reaches approval gate, you must explicitly approve
+#              or deny to continue.
