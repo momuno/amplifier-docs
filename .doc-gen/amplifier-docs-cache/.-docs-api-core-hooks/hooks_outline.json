@@ -42,7 +42,7 @@
               {
                 "heading": "### Methods",
                 "level": 3,
-                "prompt": "Provide a brief introduction to the HookRegistry methods section. List all available methods.",
+                "prompt": "Provide a brief introduction to the HookRegistry methods section. List all available methods in a Table. Then use the following template to  document each method in detail including parameters, return value, code example, and execution behavior.\n\nTemplate:\n#### <Method Name>\n<Method Description>\n<code block: Method Signature including parameters and return type>\nParameters:\n<Parameters table including parameter, type, default, and description>\nReturns: <Return type and description>\n<Code block: Example under 15 lines>\nExecution Behavior:\n<Execution Behavior explanation>\n<Note: Any other important notes>",
                 "sources": [
                   {
                     "file": "https://github.com/microsoft/amplifier-core/blob/main/amplifier_core/hooks.py",
@@ -50,78 +50,7 @@
                     "commit": "e0ad0bc85d43233483fc1ce15051436c474a3042"
                   }
                 ],
-                "sections": [
-                  {
-                    "heading": "#### register",
-                    "level": 4,
-                    "prompt": "Document the register() method including all parameters and return value. Include a code example under 15 lines. Explain the Execution Behavior. Note: Add a brief note that 'on' is an alias for 'register()' for backwards compatibility.",
-                    "sources": [
-                      {
-                        "file": "https://github.com/microsoft/amplifier-core/blob/main/amplifier_core/hooks.py",
-                        "reasoning": "Lines 62-89 contain the register() method implementation with full parameter documentation including priority and name. Lines 91-92 define the on() alias.",
-                        "commit": "e0ad0bc85d43233483fc1ce15051436c474a3042"
-                      },
-                      {
-                        "file": "https://github.com/microsoft/amplifier-core/blob/main/docs/HOOKS_API.md",
-                        "reasoning": "Contains comprehensive registration documentation with parameter explanations and examples",
-                        "commit": "e0ad0bc85d43233483fc1ce15051436c474a3042"
-                      }
-                    ],
-                    "sections": []
-                  },
-                  {
-                    "heading": "#### emit",
-                    "level": 4,
-                    "prompt": "Document the emit() method including all parameters and return value. Include a code example under 10 lines. Explain the Execution Behavior.",
-                    "sources": [
-                      {
-                        "file": "https://github.com/microsoft/amplifier-core/blob/main/amplifier_core/hooks.py",
-                        "reasoning": "Lines 103-180 contain the emit() method with comprehensive docstring explaining behavior",
-                        "commit": "e0ad0bc85d43233483fc1ce15051436c474a3042"
-                      }
-                    ],
-                    "sections": []
-                  },
-                  {
-                    "heading": "#### emit_and_collect",
-                    "level": 4,
-                    "prompt": "Document the emit_and_collect() method including all parameters and return value. Include a code example under 10 lines. Explain the Execution Behavior.",
-                    "sources": [
-                      {
-                        "file": "https://github.com/microsoft/amplifier-core/blob/main/amplifier_core/hooks.py",
-                        "reasoning": "Lines 213-256 contain the emit_and_collect() method implementation with docstring explaining it collects responses for decision reduction",
-                        "commit": "e0ad0bc85d43233483fc1ce15051436c474a3042"
-                      }
-                    ],
-                    "sections": []
-                  },
-                  {
-                    "heading": "#### set_default_fields",
-                    "level": 4,
-                    "prompt": "Document the set_default_fields() method including all parameters and return value. Include a code example under 10 lines. Explain the Execution Behavior.",
-                    "sources": [
-                      {
-                        "file": "https://github.com/microsoft/amplifier-core/blob/main/amplifier_core/hooks.py",
-                        "reasoning": "Lines 94-101 contain the set_default_fields() method that merges defaults into all events",
-                        "commit": "e0ad0bc85d43233483fc1ce15051436c474a3042"
-                      }
-                    ],
-                    "sections": []
-                  },
-                  {
-                    "heading": "#### list_handlers",
-                    "level": 4,
-                    "prompt": "Document the list_handlers() method including all parameters and return value. Include a code example under 10 lines. Explain the Execution Behavior.",
-                    "sources": [
-                      {
-                        "file": "https://github.com/microsoft/amplifier-core/blob/main/amplifier_core/hooks.py",
-                        "reasoning": "Lines 258-272 contain the list_handlers() method for introspection of registered handlers",
-                        "commit": "e0ad0bc85d43233483fc1ce15051436c474a3042"
-                      }
-                    ],
-                    "sections": []
-                  }
-                ]
+                "sections": []
               },
                             {
                 "heading": "### Hook Handler",
