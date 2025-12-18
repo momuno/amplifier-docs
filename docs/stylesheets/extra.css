@@ -82,9 +82,40 @@
   opacity: 0.8;
 }
 
-/* Code blocks */
-.md-typeset pre > code {
-  font-size: 0.85rem;
+/* Code blocks - override Material's aggressive word-breaking */
+/* Multiple selectors with maximum specificity to override Material theme */
+.md-typeset pre > code,
+.md-typeset pre code,
+.md-typeset .highlight pre > code,
+.md-typeset .highlight pre code,
+.md-typeset div.highlight pre > code,
+.md-typeset div.highlight pre code,
+.md-typeset .highlighttable pre > code,
+.md-typeset .highlighttable pre code {
+  font-size: 0.64rem !important;
+  white-space: pre !important;
+  word-break: normal !important;
+  overflow-wrap: normal !important;
+  display: block !important;
+  overflow-x: auto !important;
+}
+
+/* Fix pre container */
+.md-typeset pre,
+.md-typeset .highlight pre,
+.md-typeset div.highlight pre {
+  overflow-x: auto !important;
+  white-space: pre !important;
+}
+
+/* Override Material's code styling */
+.md-typeset .highlight code,
+.md-typeset div.highlight code,
+html .md-typeset code,
+html .md-typeset pre code {
+  white-space: pre !important;
+  word-break: normal !important;
+  overflow-wrap: normal !important;
 }
 
 /* Admonitions customization */
@@ -111,11 +142,28 @@
 
 /* Table improvements */
 .md-typeset table:not([class]) {
-  font-size: 0.85rem;
+  font-size: 0.75rem;
+  table-layout: auto;
 }
 
 .md-typeset table:not([class]) th {
   background: var(--md-default-fg-color--lightest);
+  white-space: nowrap;
+  min-width: max-content;
+}
+
+.md-typeset table:not([class]) td,
+.md-typeset table:not([class]) th {
+  overflow-wrap: normal;
+  word-break: keep-all;
+  hyphens: none;
+  padding: 0.9375em 1.5em;
+}
+
+/* Allow wrapping only on very long content */
+.md-typeset table:not([class]) td {
+  white-space: normal;
+  word-wrap: normal;
 }
 
 /* Links in content */
