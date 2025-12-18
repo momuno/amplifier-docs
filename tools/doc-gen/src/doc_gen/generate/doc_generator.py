@@ -309,7 +309,7 @@ class DocumentGenerator:
             subsection_count = len(all_subsection_headings)
 
             subsection_content = f"""
-SUBSECTION STRUCTURE - NO DEVIATIONS ALLOWED:
+SUBSECTION STRUCTURE - NO DEVIATIONS ALLOWED (with one exception below):
 
 The section "{section.heading}" has EXACTLY {subsection_count} subsection(s) defined in the outline.
 These are THE ONLY subsections that will exist. They are shown below with full hierarchy:
@@ -329,11 +329,13 @@ YOUR OUTPUT MUST CONTAIN:
   ✓ NO markdown headings of any kind (the {subsection_count} subsections above will appear automatically)
   ✓ Plain text, tables, code blocks, lists - but NO headings
 
+THE ONLY EXCEPTION:
+  ✓ You MAY include a subsection heading with content if it was explicitly stated in your SECTION INSTRUCTION to include a heading via markdown hashes as part of a template.
 The {subsection_count} subsection(s) above will appear AFTER your content in the exact order shown.
 """
         else:
             subsection_content = f"""
-NO SUBSECTIONS FOR THIS SECTION:
+NO SUBSECTIONS FOR THIS SECTION (with one exception below):
 
 The section "{section.heading}" has NO subsections defined in the outline.
 
@@ -346,6 +348,9 @@ YOUR OUTPUT MUST CONTAIN:
   ✓ ONLY content for "{section.heading}" itself
   ✓ NO markdown headings of any kind
   ✓ Plain text, tables, code blocks, lists - but NO headings
+
+THE ONLY EXCEPTION:
+  ✓ You MAY include a subsection heading with content if it was explicitly stated in your SECTION INSTRUCTION to include a heading via markdown hashes as part of a template.
 """
 
         # Build context content (no heavy headers)
