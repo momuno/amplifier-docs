@@ -30,7 +30,7 @@
           {
             "heading": "## HookRegistry",
             "level": 2,
-            "prompt": "Provide a concise high-level introduction for the HookRegistry class. Do not go into details on anything. Include source link.",
+            "prompt": "Provide a concise high-level introduction for the HookRegistry class. Include source link. List key capabilities. Show a basic HookRegistry usage example under 15 lines.",
             "sources": [
               {
                 "file": "https://github.com/microsoft/amplifier-core/blob/main/amplifier_core/hooks.py",
@@ -42,7 +42,7 @@
               {
                 "heading": "### Methods",
                 "level": 3,
-                "prompt": "Provide a brief introduction to the HookRegistry methods section. List all available methods in a Table. Then use the following template to  document each method in detail including parameters, return value, code example, and execution behavior.\n\nTemplate:\n#### <Method Name>\n<Method Description>\n<code block: Method Signature including parameters and return type>\nParameters:\n<Parameters table including parameter, type, default, and description>\nReturns: <Return type and description>\n<Code block: Example under 15 lines>\nExecution Behavior:\n<Execution Behavior explanation>\n<Note: Any other important notes>",
+                "prompt": "Provide a concise high-level introduction to the HookRegistry methods section. List all available methods in a Table. Then use the following template to  document each method in detail.\n\nTemplate:\n#### <Method Name>\n<Method Description>\n<code block: Method Signature including parameters and return type>\nParameters:\n<Parameters table including Parameter, Type, Default, and Description columns>\nReturns: <Return type and description>\n<Code block: Example under 15 lines>\nExecution Behavior:\n<Execution Behavior explanation>\n<Note: Any other important notes>",
                 "sources": [
                   {
                     "file": "https://github.com/microsoft/amplifier-core/blob/main/amplifier_core/hooks.py",
@@ -52,23 +52,10 @@
                 ],
                 "sections": []
               },
-                            {
-                "heading": "### Hook Handler",
-                "level": 3,
-                "prompt": "Document the expected format for the hook handler as it is referenced by the code. Provide any relevant information the user should be aware of when implementing their own hook handler. Include a code example under 10 lines.",
-                "sources": [
-                  {
-                    "file": "https://github.com/microsoft/amplifier-core/blob/main/amplifier_core/hooks.py",
-                    "reasoning": "References expected hook handler signature.",
-                    "commit": "e0ad0bc85d43233483fc1ce15051436c474a3042"
-                  }
-                ],
-                "sections": []
-              },
               {
                 "heading": "### Standard Events",
                 "level": 3,
-                "prompt": "Document all standard event constants defined in HookRegistry. Organize them into three categories: Lifecycle Events, Decision Events, and Error Events. List each constant with its string value and description. Show usage example. Add a note at the end: 'Note: This section documents the core lifecycle events defined in HookRegistry. For the complete canonical event taxonomy including streaming events (content_block:*, thinking:*), provider events, approval events, and other specialized events, see amplifier_core/events.py.' Include a link to events.py in the note.",
+                "prompt": "Document all standard event constants defined in HookRegistry. Organize them into three categories: Lifecycle Events, Decision Events, and Error Events. List each constant with its string value and description. Show a usage code example under 10 lines. Add a note at the end: 'Note: This section documents the core lifecycle events defined in HookRegistry. For the complete canonical event taxonomy, see amplifier_core/events.py.' Include a link to events.py in the note.",
                 "sources": [
                   {
                     "file": "https://github.com/microsoft/amplifier-core/blob/main/amplifier_core/hooks.py",
@@ -86,9 +73,22 @@
             ]
           },
           {
+            "heading": "## Hook Handler",
+            "level": 3,
+            "prompt": "Document the expected format for the hook handler as it is referenced by the code. Provide any relevant information the user should be aware of when implementing their own hook handler. Includie the handler signature, parameters, return value, and implementation requirements. Include a code example under 10 lines.",
+            "sources": [
+              {
+                "file": "https://github.com/microsoft/amplifier-core/blob/main/amplifier_core/hooks.py",
+                "reasoning": "References expected hook handler signature.",
+                "commit": "e0ad0bc85d43233483fc1ce15051436c474a3042"
+              }
+            ],
+            "sections": []
+          },
+          {
             "heading": "## HookResult",
             "level": 2,
-            "prompt": "Provide a concise high-level introduction for the HookResult class. Do not go into details on anything. Include source link.",
+            "prompt": "Provide a concise high-level introduction for the HookResult class. Include source link. List key capabilities. Show a basic HookResult usage example under 15 lines.",
             "sources": [
               {
                 "file": "https://github.com/microsoft/amplifier-core/blob/main/amplifier_core/hooks.py",
@@ -100,7 +100,7 @@
               {
                 "heading": "### Actions",
                 "level": 3,
-                "prompt": "Explain what an action does. Document all action values in a table with descriptions. Include a code example under 10 lines.",
+                "prompt": "Explain what a HookResult action does. Document all action values in a table with descriptions. Include a code example under 10 lines.",
                 "sources": [
                   {
                     "file": "https://github.com/microsoft/amplifier-core/blob/main/amplifier_core/models.py",
@@ -118,68 +118,15 @@
               {
                 "heading": "### Fields",
                 "level": 3,
-                "prompt": "Provide a concise high-level introduction for fields.",
+                "prompt": "Provide a concise high-level introduction to the HookResult fields section. List all available fields in a Table, by category. Then use the following template to document each field in detail.\n\nTemplate:\n#### <Field Name>\n<Field Description>\nType: <Field Type>\nDefault: <Default Value>\n<Note: Any other important notes>",
                 "sources": [
                   {
                     "file": "https://github.com/microsoft/amplifier-core/blob/main/amplifier_core/models.py",
                     "reasoning": "Lines 130-246 contain the complete HookResult field definitions with Pydantic Field annotations, types, defaults, and descriptions",
                     "commit": "e0ad0bc85d43233483fc1ce15051436c474a3042"
                   }
-                ],
-                "sections": [
-                  {
-                    "heading": "#### Core Fields",
-                    "level": 4,
-                    "prompt": "Document the core fields: action, data, and reason. Explain their types, defaults, and purposes.",
-                    "sources": [
-                      {
-                        "file": "https://github.com/microsoft/amplifier-core/blob/main/amplifier_core/models.py",
-                        "reasoning": "Lines 130-148 define the core action, data, and reason fields",
-                        "commit": "e0ad0bc85d43233483fc1ce15051436c474a3042"
-                      }
-                    ],
-                    "sections": []
-                  },
-                  {
-                    "heading": "#### Context Injection Fields",
-                    "level": 4,
-                    "prompt": "Document context injection fields: context_injection, context_injection_role, ephemeral, and append_to_last_tool_result. Explain their types, defaults, and purposes.",
-                    "sources": [
-                      {
-                        "file": "https://github.com/microsoft/amplifier-core/blob/main/amplifier_core/models.py",
-                        "reasoning": "Lines 150-178 define context injection fields (context_injection, context_injection_role, ephemeral). Lines 237-246 define append_to_last_tool_result field for injection placement control.",
-                        "commit": "e0ad0bc85d43233483fc1ce15051436c474a3042"
-                      }
-                    ],
-                    "sections": []
-                  },
-                  {
-                    "heading": "#### Approval Gate Fields",
-                    "level": 4,
-                    "prompt": "Document approval gate fields: approval_prompt, approval_options, approval_timeout, and approval_default. Explain their types, defaults, and purposes.",
-                    "sources": [
-                      {
-                        "file": "https://github.com/microsoft/amplifier-core/blob/main/amplifier_core/models.py",
-                        "reasoning": "Lines 180-212 define all approval gate related fields",
-                        "commit": "e0ad0bc85d43233483fc1ce15051436c474a3042"
-                      }
-                    ],
-                    "sections": []
-                  },
-                  {
-                    "heading": "#### Output Control Fields",
-                    "level": 4,
-                    "prompt": "Document output control fields: suppress_output, user_message, and user_message_level. Explain their types, defaults, and purposes.",
-                    "sources": [
-                      {
-                        "file": "https://github.com/microsoft/amplifier-core/blob/main/amplifier_core/models.py",
-                        "reasoning": "Lines 214-235 define output control fields with descriptions",
-                        "commit": "e0ad0bc85d43233483fc1ce15051436c474a3042"
-                      }
-                    ],
-                    "sections": []
-                  }
-                ]
+                ],         
+                "sections": []
               },
               {
                 "heading": "### Examples",
@@ -291,7 +238,7 @@
           {
             "heading": "## See Also",
             "level": 2,
-            "prompt": "Provide a concise 'See Also' section with links to related documentation and resources. Format as a bulleted list with brief descriptions.",
+            "prompt": "Provide a concise 'See Also' section with links to related documentation and resources. Format as a bulleted list with brief descriptions. Use full GitHub URLs.",
             "sources": [
               {
                 "file": "https://github.com/microsoft/amplifier-core/blob/main/amplifier_core/events.py",
